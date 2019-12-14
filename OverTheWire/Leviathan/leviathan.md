@@ -8,7 +8,7 @@ Get in the box:
 There's a hidden folder called .backup with an html doc. All you have to do is grep for password.
 
 ## level 1 -> 2
-There is a binary called check. When you run, it asks for a password. Didn't know what to do, so I did a hexdump:
+There is a binary called check. When run, it asks for a password. Wasn't sure what to do, so I did a hexdump:
 `hexdump -C check`
 Broken up throughout the ascii, I saw 4 words which will be familiar if you've ever seen the movie 'Hackers'. Combine these, and the program will execute /bin/sh.
 Lucky for me, it's running as leviathan2, so you can now see the next password.
