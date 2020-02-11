@@ -157,3 +157,181 @@ Let's say that the number in front of -natas19 is still constrained within the r
 
 I ran it the first time, and got no hits. I looked closely at the wording on the page -- it says to login as 'admin' to get the credentials for natas20. So I altered my script so that the suffix was -admin and ran it again. That was a good guess.
 eofm3Wsshxc5bwtVnEuGIlr7ivb9KABF
+
+## level 20 -> 21
+This level also requires you to login as an admin to retrieve the next password, but also has an input field that allows you to change your name.
+Source code is provided again, and this time I have to learn a little bit about how session data can be managed with php. There's a function `session_set_save_handler` which takes a set of callbacks for opening, closing, reading, writing, and destroying sessions. In this example, only read and write handlers seem to be functional.
+
+I can also see that session ids are only allowed to contain letters, numbers, -, and spaces. My assigned session id is `PHPSESSID:"qj3reabo65f24jvsg50d0008r6"`
+The session's data is stored in a file located at <Session Save Path>/mysess_{session id}. This file has permissions set to 0600.
+
+When you set a name, this gets saved to the session array, and is reflected back into the input field. Maybe there is a way to inject something here. 
+
+Going back to the code where the session data is saved, each key-value pair is saved into the file:
+name joe
+key value
+
+When it's read back out, it splits lines out by detecting \n, and then each line is broken into key and value based on encountering a whitespace character.
+Maybe I can set a name such that when it is read back from the file, it's read as an additional key-value pair. I will have to hide a \n in there. It doesn't look like 
+
+Using the developer tools in the browser, I was able to modify the previous POST request to send params of:
+`%0Aadmin%201`
+
+When I loaded the page again, I was admin.
+
+
+## level 21 -> 22
+Loggin into this page, I'm told again to login as admin, but also that the page is "colocated" with another url. Following the link, I have to log in again to see some kind of css style experimenter form. I have source code to both pages.
+I'm going to assume that 'colocated' probably means that sessions are somehow shared between both sites. So if I can set admin in the css form site, which takes input, I might be able to hijack that session from the other page.
+
+Looking at the source code, I see that it restricts keys received in the POST request to those expected on the form. I also see that if a 'submit' key is in the request, it will store each key-value pair in the request to the SESSION array. 
+
+Again, I used the dev tools in the browser to modify the request params. I tried adding 'admin=1' in addition to the existing params, but that didn't work. I tried resubmitting the POST with just `submit=Update&admin=1` as the request body. I then copied the session id cookie after the request completed, went back to the natas21.natas.labs.overthewire.org page, and overwrote that session id. I resumbitted the GET with this new session ID, and that did the trick.
+
+chG9fbe1Tq2eWVMgjYYD1MsfIvN461kJ
+
+## level 22 -> 23
+This is a blank page, except for a view sourcecode link. 
+
+The source code checks for an array key of "revelio" in the GET request. If it exists, it should print the credentials. However, there is also some logic executed right after session_start() that calls `header("Location: /");` if there is no admin=1 stored in the session array. What does this do?
+
+Reading up on php.net - "Location:" is one of two special case header calls. It sends the header to the browser along with a REDIRECT(302) status code. 
+I can confirm that when I add "revelio" as a param in the url, I get a 302 back from the server, followed by a second GET without any params (the browser redirected). 
+
+Another thing that I noticed in the documentation for header Location was that exit should be called after setting the location to prevent the rest of the code from being executed. This is absent in the source code example. So hypothetically, the rest of the php should be executed, meaning credentials will be displayed as long as 'revelio' in in the request.
+
+While the browser seemed to automatically redirect once receiving a 302 response code in the header, curl does not automatically follow redirects. So a simple curl command revealed the password:
+`curl -u natas22:chG9fbe1Tq2eWVMgjYYD1MsfIvN461kJ http://natas22.natas.labs.overthewire.org?revelio`
+
+D0vlad33nQF0Hz2EP255TP5wSW9ZsRSE
+
+## level 23 -> 24
+Here we have an input box labelled 'Password' with a Login button. And a view sourcecode link.
+This one has nothing to do with sessions. It looks for a passwd request parameter and checks that it contains the substring 'iloveyou' and also that it is greater than 10.
+There is also a comment `//morla / 10111`. The total length of the input is constrained to 20 characters.
+I literally just took a wild guess and added `?passwd=10111iloveyou` to the url and that was all I needed to do.
+
+OsRmXFguozKpTZZ5X14zNO43379LZveg
+
+## level 24 -> 25
+This looks almost exactly like the previous level, except this time, the string that passwd value is compared against is censored. That morla comment is still there.
+
+This uses strcmp() to check the value of passwd against some censored value. It's a weird check. strcmp returns 0 if equal, or a negative/positive integer in other cases. The source checks for !(strcmp(val1, val2))...which is a weird way of checking for a 0 return value. 
+Reading the comments on the php.net documentation for the strcmp() function are interesting. There are ways certain comparisons that return unexpected NULLs or errors. One interesting comment showed a problem with using strcmp on a query param:
+
+```
+<?php
+if (strcmp($_POST['password'], 'sekret') == 0) {
+    echo "Welcome, authorized user!\n";
+} else {
+    echo "Go away, imposter.\n";
+}
+?>
+
+$ curl -d password=sekret http://andersk.scripts.mit.edu/strcmp.php
+Welcome, authorized user!
+
+$ curl -d password=wrong http://andersk.scripts.mit.edu/strcmp.php
+Go away, imposter.
+
+$ curl -d password[]=wrong http://andersk.scripts.mit.edu/strcmp.php
+Welcome, authorized user!
+```
+
+So I tried this out...altered the query param of passwd to be passwd[]. Resubmitted the request and got a funny response:
+```
+Warning: strcmp() expects parameter 1 to be string, array given in /var/www/natas/natas24/index.php on line 23
+
+The credentials for the next level are:
+
+Username: natas25 Password: GHF6X7YwACaYYssHVY05cFq83hRktl4c
+```
+
+PHP is...special.
+
+## level 25 -> 26
+Ok, I'm presented with some weird long quote about God. There's a language drop-down, and good ol' view source code link.
+Looks like session ids are back, and lang is a query string. The available options are 'en' and 'de'.
+Viewing the source, I see that the code uses the lang param to access a file stored at language/en. It's passes to a function called safeinclude() which strips out `../` and blocks anything containing the substring "natas_webpass", which is where the password is stored.
+
+One thing to note, is that if a directory traversal or password file access is attempted, this is logged in a file at /var/www/natas/natas25/logs/natas25_{session_id}.
+The log contains a timestamp, the http user agent, and the message. There is no input validation on the user agent, so maybe this is a place to inject some php.
+
+Using [php include](https://www.php.net/manual/en/function.include.php), I might be able to include the password file in the log.
+I'll try this by setting the user agent in the request to 
+`
+<? include "/etc/natas_webpass/natas26" ?>
+`
+Also, there's a little bug in the safeinclude function. It detects directory traversal by looking for ../ and then logs the attempt before stripping out the characters. But then it continues to check for the file's existence and include it. So if I use ....// in place of ../ , the "corrected" string will still contain ../ which allows me to traverse.
+
+So I should be able to print the log file (which now hopefully includes the password) by letting the lang param to `....//logs/natas25_{session_id}.log`
+
+My edited request looks like this:
+`
+GET /?lang=....//logs/natas25_mysess.log HTTP/1.1
+Host: natas25.natas.labs.overthewire.org
+User-Agent: <? include "/etc/natas_webpass/natas26" ?>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+DNT: 1
+Authorization: Basic bmF0YXMyNTpHSEY2WDdZd0FDYVlZc3NIVlkwNWNGcTgzaFJrdGw0Yw==
+Connection: keep-alive
+Cookie: PHPSESSID=mysess
+Upgrade-Insecure-Requests: 1
+Cache-Control: max-age=0
+`
+
+And the server responds with:
+```
+[10.02.2020 14::09:04] oGgWAJ7zcGT28vYazGo4rkhOPDhBu34T
+ "Directory traversal attempt! fixing request."
+ ```
+
+oGgWAJ7zcGT28vYazGo4rkhOPDhBu34T
+
+## level 26 -> 27
+
+Oh great. This level has four input boxes! It commands me to draw a line by entering values for x1, y1, x2, and y2. 
+I tried entering 4 values and it returned a black png...hmm.
+
+Let's read the given source:
+There is a Logger class that handles writing to a log file for the duration of the session. 
+There is a showImage function which builds an img tag out of the given file name.
+There is a drawImage function which creates a png and writes it to the given file .
+There is a drawFromUserdata function which gets the coordinates from the request and also reads any drawings stored as cookies.
+Finally, there is a storeData function that gets the values from the request and serializes them before setting as the "drawing" cookie.
+
+I don't see the log class actually being used by the other parts of the code, interestingly. 
+
+So I don't know that I can trick the showImage to generate something other than an image. But the storeData function looks like it just reads the coordinates straight into a cookie that's base64 encoded. Maybe I can try injecting php similar to the previous level as a coordinate, and get the password included, and then decode the base64 blob that's returned as a cookie.
+ 
+I tried url-encoding `<? include "/etc/natas_webpass/natas27" ?>` as the x1 value, and then base64 decoding the drawing cookie:
+`
+a:3:{i:0;a:4:{s:2:"x1";s:1:"1";s:2:"y1";s:1:"2";s:2:"x2";s:1:"5";s:2:"y2";s:1:"6";}i:1;a:4:{s:2:"x1";s:1:"7";s:2:"y1";s:1:"5";s:2:"x2";s:1:"4";s:2:"y2";s:1:"3";}i:2;a:4:{s:2:"x1";s:42:"<? include "/etc/natas_webpass/natas27" ?>";s:2:"y1";s:1:"5";s:2:"x2";s:1:"4";s:2:"y2";s:1:"3";}}
+`
+
+So my php is set in there, but not resolved. I also get the following error displayed:
+`Warning: imageline() expects parameter 2 to be long, string given in /var/www/natas/natas26/index.php on line 66`
+
+The decoded cookie looks a little weird, so upon closer inpection of the source, I see that php serialize() is used before it is encoded. I looked up the docs for serialize, and then also [unserialize](https://www.php.net/manual/en/function.unserialize.php) which has a big warning about not trusting user input while unserializing as it could result in code loading and execution.
+
+So I think I'm on the right track by trying to get code loaded from the drawing cookie.
+
+I need to be able to write to a file that I can access later somehow. There's still this unused Logger class in the source code, which writes messages to a file. At this point, I needed a hint. Searching around, I learned about php object injection, which is related to the vulnerability in unserialize loading and executing arbitrary code. From my understanding, if the php code on the server uses a class that implements a method like "\__wakeup" or "\__destruct" (Logger implements one of these!), and this class has already been declared by the time unserialize() has been called, you have a good case for an object injection attack.
+
+Looking at the examples on [OWASP.org](https://owasp.org/www-community/vulnerabilities/PHP_Object_Injection), I see that the idea is to write some code that overrides the existing class's implementation, serialize it and base64 encode it, and pass it up as a cookie.
+
+I have a php script (Natas26.php) included in the repository that redefines the initialization of the Logger class's private members so it writes the contents of the password file to a location of my choosing. I picked the img/ directory, since the code clearly already has the ability to read and write to this location.
+Finally, the script encodes and serializes the object.
+
+I use the blob that is output and replace the "drawing" cookie value before submitting the request.
+The page reloads with an image, but also with this error message:
+`
+Fatal error: Cannot use object of type Logger as array in /var/www/natas/natas26/index.php on line 105
+`
+
+Ok, but is my file there? I go to natas26.natas.labs.overthewire.org/img/myfile.php and:
+
+55TBjpPZUUJgVP5b3BnbG6ON9uDPVzCJ 
+
