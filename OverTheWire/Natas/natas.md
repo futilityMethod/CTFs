@@ -335,3 +335,57 @@ Ok, but is my file there? I go to natas26.natas.labs.overthewire.org/img/myfile.
 
 55TBjpPZUUJgVP5b3BnbG6ON9uDPVzCJ 
 
+## level 27 -> 28
+
+This is another user name and password page. Entering 'natas27' and the level password doesn't log me in. Taking a look at the source, there's a comment:
+`//morla / 10111`
+This seems to work, as the page displays a message: User morla was created!
+
+There is also a comment stating that the database is cleared every 5 minutes. Guessing this will be important -- potentially there will be a time window during which I must complete my attack.
+
+Starting from the bottom of the source code (to see what happens once a request is received), it's now clear why morla/10111 worked. First, a mysql database is accessed using the natas27 credentials. Then the credentials passed into the request are tested. If they are valid, a welcome message is displayed along with some data. If the user exists but the password is invalid, a message is returned stating the password is wrong. However, if the user doesn't exist in the table, it creates one using the credentials provided. So Morla did not exist in the table, but Natas27 did.
+
+
+I'm going to look athe createUser function first. It takes a link to the DB, and the request username and password values. Both username and password are passed through a function called mysql_real_escape_string before being substituted into a prepared query. 
+
+Time to read the [docs](https://www.php.net/manual/en/function.mysql-real-escape-string.php). First there is a nice big red warning box, saying this extension was deprecated in PHP 5.5.0. Let's see why. So apparently, the function prepends backslashes to `\x00, \n, \r, \, ', ", \x1a`. This info is immediately followed by a big security caution box, stating that the character set much be set at the serverl level or by mysql_set_charset in order to affect mysql_real_escape_string. Ok...
+
+Ok, there is a note that the method does not escape % or _ which are wildcards in mysql w/ LIKE, GRANT, or REVOKE. I'll put that in the back of my mind for now.
+
+Now let's take a look at validUser, which takes the DB link and the requested username. That seems to be a straightforward check to see if any matching rows come back from querying the DB with the user name.
+
+The checkCredentials function takes DB link, username, and password. Escapes the input, and queries the DB for entries where both fields match.
+
+Now the last method, dumpData. This only takes the username and a link to the DB. And it just does a SELECT * on the username. So you'd get all the data for that user.
+
+So I think my first approach should be to craft a sql injection payload for the password field that circumvents the checkCredentials function. If that works, I should be able to get the password for Natas28.
+
+After spending a lot of time reading up on how mysql_real_escape_string works, I started to feel like I was banging my head against the wall. Especially after running into [this post](https://www.sqlinjection.net/advanced/php/mysql-real-escape-string/) on sql injection avenues for the function. It looked like there were two potential avenues: exploiting an unsanitized numeric parameter (where the value isn't wrapped in single quotes), or slipping in a wild card character in a LIKE query. The code had neither of these vulnerabilities. 
+
+Maybe I should look for another way. 
+
+I know that Natas28 is a valid user name. I could always brute force the password. I know the max length is 64 characters. Examing the characters used in the previous passwords, I could constrain the characterset to 66 (a-z + A-Z + 0-9). That's a stupidly huge number of passwords to try (ie 66^0 + 66^1 + ... + 66^64). Even if I assume the password will be 32 characters exactly (as the previous ones seem to have been), that's still way too many passwords to try.
+
+Ugh. What if I try to create a username or password with more than 64 characters?
+I tried entering 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaz' (64 a + 1 z), with no password, and it reflected it back to me as being created.
+If I try entering it again, I again see a message that the user was created. Hmmm.
+Ok so what if I enter exactly 64 a characters? Now I see my user data. So somehow the truncated user is what actually gets stored. 
+
+I found this quote from the [mysql docs](https://dev.mysql.com/doc/refman/8.0/en/char.html)
+```
+For those cases where trailing pad characters are stripped or comparisons ignore them, if a column has an index that requires unique values, inserting into the column values that differ only in number of trailing pad characters will result in a duplicate-key error. For example, if a table contains 'a', an attempt to store 'a ' causes a duplicate-key error. 
+```
+
+So this means that I can't try to create a user 'natas28 ' or 'natas28 [+ 60 spaces]' because the whitespace is ignored when comparing against 'natas28'. BUT. If I pad it with enough whitespace AND put a character after that, I can get past the comparison when trying to create a new user. And as I've seen with my experiment above, the username will be truncated to 64 characters when it's stored.
+
+The next query that checks for username='natas28', BOTH results will be returned, because my now-truncated fake-Natas28 won't have its trailing whitespaces counted in the comparison.
+
+When I put this to the test (1. create an "evil" natas28 with no password, 2. Log in as regular Natas28 with no password), I get this result: 
+
+Welcome natas28!<br>Here is your data:<br>Array
+(
+    [username] =&gt; natas28
+    [password] =&gt; JWwR438wkgTsNKBbcJoowyysdM82YjeF
+)
+
+## Level 28 -> 29
