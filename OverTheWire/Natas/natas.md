@@ -389,3 +389,56 @@ Welcome natas28!<br>Here is your data:<br>Array
 )
 
 ## Level 28 -> 29
+
+The situation just got real -- no source available in this level. I'm presented with a "Joke Database" with a text input box and search button.
+Just to check, I took a look at the page html source. The only thing interesting is the following comment:
+`<!-- 
+    morla/10111 
+    y0 n0th!
+-->`
+
+If I hit search without entering any text, The response comes back with the following location: 
+` search.php/?query=G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcjPLof%2FYMma1yzL2UfjQXqQEop36O0aq%2BC10FxP%2FmrBQjq0eOsaH%2BJhosbBUGEQmz%2Fto%3D`
+The browser then redirects to this page, and displays some jokes.
+
+Url decoded, this is `G+glEae6W/1XjA7vRm21nNyEco/c+J2TdR0Qp8dcjPLof/YMma1yzL2UfjQXqQEop36O0aq+C10FxP/mrBQjq0eOsaH+JhosbBUGEQmz/to=`
+Which looks like base64 encoding. 
+
+I tried with the query 'cow', and got redirected to `G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcjPIpuCdGvo%2FlSLmvzc7sI%2Bm6mi4rXbbzHxmhT3Vnjq2qkEJJuT5N6gkJR5mVucRLNRo%3D`
+Which apparently has no jokes.
+
+So I'm unsure what these strings of characters are, but I notice the url decoded forms have several forward slashes. I tried removing everything after the first slash and resubmitting the request. I get the following error:
+`Incorrect amount of PKCS#7 padding for blocksize`
+
+PKCS7 is a standard defined in [RFC 2315 - Cryptographic Message Syntax](https://tools.ietf.org/html/rfc2315). So basically, this query string is encrypted. 
+I tried a number of various search queries, and one thing that stood out to me is that the beginning part of the encrypted query param was always the same. 
+I also tried reapeatedly prefixing a query (cow) with successively larger numbers of the character 'a', and was able to find a few additional patterns.
+With every additional 16 a's, the length of the encrypted string increases. This suggests the encryption scheme is a block cipher with a block size of 16 bytes. 
+I think this reveals that the cipher is using ECB mode, since I can show that identical pieces of plaintext result in the same ciphertext.
+
+I spent some time prepending successive numbers of 'a's before my query, and found that after 10, one more block becomes fixed:
+G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcj PJcgFy9Kftj4uxTZFMlx6iW Awjck%2BiODOmY8IWnZPcoVG IjoU2cQpG5h3WwP7xz1O3YrlHX2nGysIPZGaDXuIuY 10 b's plus cow
+G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcj PLAhy3ui8kLEVaROwiiI6Oe Awjck%2BiODOmY8IWnZPcoVG IjoU2cQpG5h3WwP7xz1O3YrlHX2nGysIPZGaDXuIuY 10 a's plus cow
+
+So that means the beginning of the encrypted query takes of part of that block. It's also clear that there is some text appended to the end of the input query.
+I'm guessing this is some sql query to get jokes LIKE the input text. I was able to confirm this by entering 9 a's so that the last character in that encrypted block is the first character appended to the input.
+Then I had to try adding a 10th character to my input to see which resulted in the same encrypted character. Turns out it's '%', which gives more evidence that the encrypted query is a sql LIKE statement.
+
+This trick can actually help get past the escaping of single-quote characters. If I enter 9 characters + single quote, the 10th character of the encrypted result will be the backslash escaping the quote. So the next block will contain the encrypted value of single quote.
+In this way, I can get an encrypted sql query starting on a fresh block.
+
+For the query: Previous levels had a users table with username and password columns. I'm just going to take a wild guess that the same table is available. So let's say `‘  UNION ALL SELECT password FROM users;#` will be a good candiate.
+
+So the idea:
+1. Find my encrypted sql payload by entering 9 characters followed by the single quote and query (so the escape character fills up the block). The plaintext payload is 40 characters, so it will be contained in 3 16-byte blocks.
+2. Grab those three encrypted blocks after the first three encrypted blocks.
+3. Generate another encrypted query string using 10 characters.
+4. Slip the encrypted text from step 2 in the middle of the cyphertext obtained in step 3, right after the first 3 blocks.
+
+If it works, the resulting query string should return the next password.
+
+(Spoiler: it does. See natas28.py)
+
+airooCaiseiyee8he8xongien9euhe8b
+
+## Level 29 -> 30
