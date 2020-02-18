@@ -473,3 +473,24 @@ So I gave that a shot. And it worked.
 The URL encoded magic string: `/index.pl?file=|cat+%22/etc/na%22%22tas_webpass/na%22%22tas30%22%00`
 
 wie9iexae0Daihohv8vuu3cei9wahf0e
+
+## Level 30 -> 31
+
+Back to a login and password. There's a source link, too, but OH NO right clicking has been blocked. So I'll have to look at the html, find that the link points to index-source.html, and load up that page. And I'm presented with a bit of perl.
+
+This script is pretty simple. If values for the 'username' and 'pasword' params are including in the POST, it connecto to a mysql database using Natas30's credentials. It then creates a select query to return data for the username and password. If a result is obtained, it's printed out. Otherwise, you get a `fail :(` message. It looks like input it quoted using the DBI quote() method. I'll have to read about how this works.
+
+If I enter natas30's credentials, it fails. Same with morla/10111. Ok. Now it's time to figure out some sql injection.
+
+Reading from [DBI documentation](https://metacpan.org/pod/DBI#quote), quote escapes special characters and adds outer quotation marks.
+Simple url encoding doesn't work (ie `%22OR%201%3D1%3B`). 
+
+But StackExchange does. It looks like someone actually posted this code to security.stackexchange.com and asked if it's vulnerable. User Ludisposed [explains](https://security.stackexchange.com/a/175872) that there's a poor assumption that the input parameter will be a scalar value. However, if you include two values into the request (eg. `username="dave"&username=2`), an array will actually be passed into the quote function. And apparently, if you call quote with a list where the second value is a SQL_INTEGER, the output will be an unquoted value.
+
+He provides a sample input, which I've adapted to: `username=natas31&password='lol'+or+1&password=4`
+
+And that's it.
+
+hay7aecuungiuKaezuathuk9biin0pu1
+
+## Level 31 -> 32
