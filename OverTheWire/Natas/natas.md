@@ -442,3 +442,34 @@ If it works, the resulting query string should return the next password.
 airooCaiseiyee8he8xongien9euhe8b
 
 ## Level 29 -> 30
+
+Ah, great. This level is in 1337 speak and right clicking has been blocked. I can still see the html in dev tools. There's a drop down menu which allows you to select from perl underground 0-5.
+When you select one, a page called index.pl is loaded, with a query parameter of file with a value of the file name. The page contains a whole bunch of text that appears to be console output.
+
+So let's see what the heck is interesting in those files...
+
+First read through the first underground. It's a lot of text. So bascially, what I think I'm looking at is some kind of perl-enthusiast publication. And each page is another issue.
+So it's totally possible that a usable exploit (or hint pointing towards one) is contained somewhere in here. It's also possible there isn't.
+
+What do I know?
+There is a perl script that can be given a file name. It outputs the html for the page, and includes the file output if provided. I don't know what format the file is (is it just text? or is it an executable script itself that generates the text?)
+Also there is a handler that captures the right click and shows an alert to prevent one from viewing the source. 
+
+Alright fine. I'll just try passing in the url encoded path to the password as the file.
+I get the response - `meeeeeep!` included in the html.
+That tells me that there is some kind of logic to detect and prevent direct access to the path.
+I tried using HTML entity encoding for the '\' as well. More `meep`
+
+More guessing here: index.pl executes with the file name as a parameter. If it opens it and prints it, it may be using the `open()` function -- which can be tricked into executing commands. If the "filename" begins with a '|' character, the output of what follows is piped into the file handle.
+
+So let me see if I can send a param for file that prints something.
+I tried `http://natas29.natas.labs.overthewire.org/index.pl?file=|cat+index.pl` and `http://natas29.natas.labs.overthewire.org/index.pl?file=|cat+perl+underground` but got no input.
+Maybe getting the perl script to print itself is goofy, but 'perl underground' exists. But there is a space in the file name. Maybe I need to try quotes.
+Url encoded, that is `http://natas29.natas.labs.overthewire.org/index.pl?file=|cat+%22perl+underground%22`. And yes, I see the file is printed just as if I'd passed in the filename itself.
+
+So that means I can execute code. Unfortunately, it seems like 'natas30' or maybe even 'natas' is being filtered out, so I have to get around that. One peculiar thing I know is that if you put an open and close double-quote in the middle of a file name on the command line, it's basically ignored. I tried `|cat "/etc/na""tas_webpass/na""tas30"` , but still no password. Ok then.
+I took a read through [PayloadsAllTheThings - File Inclusion](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/File%20Inclusion) for some hints, and the first suggesting is that terminating with a null byte (%00) can work. The scripting language may not see it as a null terminator, but the OS will. 
+So I gave that a shot. And it worked.
+The URL encoded magic string: `/index.pl?file=|cat+%22/etc/na%22%22tas_webpass/na%22%22tas30%22%00`
+
+wie9iexae0Daihohv8vuu3cei9wahf0e
