@@ -7,7 +7,7 @@ My [WeChall profile](https://www.wechall.net//profile/futilitymethod)
 ### [Bandit](https://overthewire.org/wargames/bandit/)
 This is a nice warm up CTF. Should be quite easy if you're familiar with Linux.
 
-Writeup](/OverTheWire/Bandit/README.md)
+[Writeup](/OverTheWire/Bandit/README.md)
 
 ### [Leviathan](https://overthewire.org/wargames/leviathan/)
 Another beginner level linux-based CTF. This one is short, only 7 levels.
