@@ -528,7 +528,7 @@ Upload
 Now according to this presentation, the line `if ($cgi->upload('file'))` will check if ANY of the file parameters have been uploaded. Meaning I can provide two, and only one has to be uploadable in order for this check to succeed.
 Next, the statement `$cgi->param('file')` will return all of the matching parameter values, but only the first one will actually get stored to a variable on the left side of an assignment statement.
 Another good tidbit of information -- if this first 'file' value is a scalar, a plain string will be stored, and not a file handle. Why is this important? 
-The while loop which iterates through the file contents, `while (<$file>)` does something special if the string value of $file is ARGV. It will loop through the query parameters and pass them too an open() call. If $file was any other plain string, nothing useful would happen.
+The while loop which iterates through the file contents, `while (<$file>)` does something special if the string value of $file is ARGV. It will loop through the query parameters and pass them to an open() call. If $file was any other plain string, nothing useful would happen.
 
 Putting this all together, I formed the following request:
 ```
@@ -566,3 +566,53 @@ Upload
 
 And password.
 no1vohsheCaiv3ieH4em1ahchisainge
+
+## level 32 -> 33
+
+This level appears to be basically identical to the previous, with the exception of a message informing me I must prove I have RCE and that there is an executable I must run in webroot.
+
+Using what I've just learned in the last level, I should be able to pass in a query string that is a command terminated with a '|'. 
+Frustratingly, trying `/index.pl?ls|` doesn't get my any output. Maybe I'll try using the more verbose `ls . |` 
+And that works!
+```
+<h1>natas32</h1>
+<div id="content">
+<table class="sortable table table-hover table-striped"><tr><th>.:
+</th></tr><tr><td>bootstrap-3.3.6-dist
+</td></tr><tr><td>getpassword
+</td></tr><tr><td>getpassword.c
+</td></tr><tr><td>getpassword.c.tmpl
+</td></tr><tr><td>index-source.html
+</td></tr><tr><td>index-source.pl
+</td></tr><tr><td>index.pl
+</td></tr><tr><td>index.pl.tmpl
+</td></tr><tr><td>jquery-1.12.3.min.js
+</td></tr><tr><td>sorttable.js
+</td></tr><tr><td>tmp
+</td></tr></table><div id="viewsource"><a href="index-source.html">View sourcecode</a></div>
+```
+
+So looks like I have to run getpassword: `/index.pl?./getpassword%20|`
+
+And there it is.
+shoogeiGa2yee3de6Aex8uaXeech5eey
+
+## level 33 -> 34
+
+I think this is the last level? FINALLY?! 
+
+This is another upload form, that directs me to upload a firmware update. Let's look at the source code.
+
+We're back in magical php land. The form specifies a max file size of 4096 (bytes?) and names the file the session id. On the upload, an instance of a class called Executor is created.
+This class has a private member called signature, which is set to the following: adeafbadbabec0dedabada55ba55d00d
+
+It checks the file size first. If it's not too big, it uploads it to /natas33/upload/ . Once that's successful, it attempts to run the "firmware" by using php passthru -- IF the md5 hash of the filename is equal to the signature.
+
+Ok. So I think this is what I need to do. First, I need to figure out what will hash to the signature value, and set that as my session id. This should get my filename to pass the check. Then, it should just be a matter of uploading a script that prints the password file.
+
+Unfortunately, reversing the md5 hash is going to be a pain. Sidenote, adeafbadbabec0dedabada55ba55d00d is "A deaf bad babe coded a badass bass dood". Ok then.
+
+And wait...I was wrong. I just looked up the documentation for [php md5_file](https://www.php.net/manual/en/function.md5-file.php) and learned that this function checks the md5 hash of the FILE and not the filename.
+
+Maybe that narrows it down some because it adds some constraints to the possible inputs that could produce the hash -- it has to be a script that prints the password. Fine, let's go.
+
