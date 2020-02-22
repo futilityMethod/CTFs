@@ -4,7 +4,7 @@
 Just log in to the webpage
 
 ## level 0 -> 1
-View source to find password
+View source to find password.
 gtVrDuiDfck831PqWsLEZy5gyDz1clto
 
 ## level 1 -> 2
@@ -65,17 +65,19 @@ U82q5TCMMQ9xuFoI3dYX61s7OZD9JKoK
 A cookie is generated server-side which is json-endoded, xor_encrypted with some unknown key, and then base-64 encoded. This cookie contains two fields - the background color as specified by the user, and a show-password flag. When you submit a request with a new background color, there is a script that checks that the 'bgcolor' key exists and that the value matches a regex. It then assigns that raw value to the array -- not the match. I thought this might be the hint, but I couldn't find a way to trick the regex and sneak in anything useful.
 
 So looking back at XOR encryption. We have a value XOR'd with a key. But we can get around not knowing the key! Let's take an example:
-`     1 0 1 0
+```
+     1 0 1 0
   xor 0 0 1 1
   -----------
       1 0 0 1
-`
+````
  Imagine `0011` is our key. What happens when we XOR our input and output:
- `    1 0 1 0
+ ```
+     1 0 1 0
   xor 1 0 0 1
   -----------
       0 0 1 1
- `
+ ````
 
  We get our key! Great. Now we can forge a cookie.
  I wrote a php script that slightly modifies the xor_encrypt function to take the key as a parameter. By passing it our base64-decoded default cookie as `$in` and the default value array as the `$key`, the actual key is revealed.
@@ -96,7 +98,7 @@ I did a google search on embedding php into an image, and quickly found some inf
 Lg96M10TdfaPyVBkJdjymbllQ5L6qdl1
 
 ## level 14 -> 15
-Now there is a username and password to enter. Viewing the source, I see that it's accessing a mysql database to check the login. I'm betting this is a sql injection vulnerability. For a quick refresher, I checked out the w3schools page on sql injection (https://www.w3schools.com/sql/sql_injection.asp).
+Now there is a username and password to enter. Viewing the source, I see that it's accessing a mysql database to check the login. I'm betting this is a sql injection vulnerability. For a quick refresher, I checked out the [w3schools page on sql injection](https://www.w3schools.com/sql/sql_injection.asp).
 Literally the second example works.
 AwWj0w5cvxrZiONgZ9J5stNVkmxdk39J
 
@@ -112,6 +114,7 @@ WaIHEacj63wnNIBROHeqi3p9t0m5nhmh
 
 ## level 16 -> 17
 Now we are back at searching for text in 'dictionary.txt'. This time, [], ;,|,\`,and ' are filtered out.
+
 But you know what's cool? If you enter `$0` into the box, you get a list of words that contain 'sh'. So shell variables are expanded. I can run something like `$(grep x /etc/natas_webpass/natas17)` and the result is used by the wrapping grep command as search text. This in itself isn't usefull since the password isn't going to match anything in dictionary.txt. But I could append the output to another search string. For example, 'apples' returns 3 results. If I run `apples$(grep x /etc/natas_webpass/natas17)` , I get the same results, because there is no 'x' in the password, so the expression just evaluates to apples. But if I run `apples$(grep b /etc/natas_webpass/natas17)`, I get no results. This must be the case because the password contains a b, so the expression evaluates to applesb, which is not a word in dictionary.txt.
 
 So I've modified the script I used in the last level to perform a similar brute force attack. By trying all the characters in the expression, I can find out which are contained in the password. Then, I can start building the password one character at a time until finally I have it.
@@ -130,18 +133,27 @@ xvKIqDjy4OPv7wCRgDlmj0pFsCsDjhdP
 ## level 18 -> 19
 This level has a login form, which directs me to log in with admin credentials to receive natas19's password.
 By viewing the source provided I found out that this page is using Sessions to manage logged in user's state. When I log in with natas18's credentials, I can verify that I am assigned a PHPSESSID cookie. 
+
 On the server, the \_SESSION array has a key called 'admin', which is set to 1 if the user is admin. When a page loads and a valid PHPSESSID cookie is included in the http request, the code just checks to see if the 'admin' variable for the session has the correct value before deciding to print natas19's password in the response.
+
 So it seems that I can just try passing different PHPSESSID values along with my requests to see if an active session for admin already exists on the server. Bonus for me, I can see that the max session id possible is 640, so I know I won't be brute forcing forever.
+
 See the attached natas19.py script for the solution.
+
 Lo and behold, it works.
+
 4IwIrekcuZlA9OsjOkoUtwU6lhokCPYs
 
 ## level 19 -> 20
 Instructions say this level uses mostly the same code as the previous level, except session IDs are no longer sequential.
+
 So I log in to see what my session id looks like: `PHPSESSID:"3237332d6e617461733139"`
+
 First guess was that it was base-64 encoded, but there were no printable characters found (at least for UTF-8 charset). Maybe it's hex? Sure, just a really big number.
 Can I just brute force all day? Seems annoying.
+
 I thought maybe it's a hash, so I tried putting it in crackstation.net which claims to have a massive set of rainbow tables, but there was no match found.
+```
 PHPSESSID:"3237332d6e617461733139" - 273-natas19
 PHPSESSID:"  37372d6e617461733139" -  77-natas19
 PHPSESSID:"3630372d6e617461733139" - 607-natas19
@@ -149,8 +161,10 @@ PHPSESSID:"3237392d6e617461733139" - 279-natas19
 PHPSESSID:"3430382d6e617461733139" - 408-natas19
 PHPSESSID:"3334352d6e617461733139" - 345-natas19
 PHPSESSID:"3434312d6e617461733139" - 441-natas19
+```
 
 So the end bit stays the same. That means it's probably not a hash of something. It's not base64. But actually, it's hex representation of ascii.
+
 Converting 2d6e617461733139 from hex to ascii reveals '-natas19'
 
 Let's say that the number in front of -natas19 is still constrained within the range 0-640 and try editing the last script to work...
@@ -179,6 +193,7 @@ Using the developer tools in the browser, I was able to modify the previous POST
 
 When I loaded the page again, I was admin.
 
+IFekPyrQXftziDEsUr3x21sYuahypdgJ
 
 ## level 21 -> 22
 Loggin into this page, I'm told again to login as admin, but also that the page is "colocated" with another url. Following the link, I have to log in again to see some kind of css style experimenter form. I have source code to both pages.
@@ -209,6 +224,7 @@ D0vlad33nQF0Hz2EP255TP5wSW9ZsRSE
 Here we have an input box labelled 'Password' with a Login button. And a view sourcecode link.
 This one has nothing to do with sessions. It looks for a passwd request parameter and checks that it contains the substring 'iloveyou' and also that it is greater than 10.
 There is also a comment `//morla / 10111`. The total length of the input is constrained to 20 characters.
+
 I literally just took a wild guess and added `?passwd=10111iloveyou` to the url and that was all I needed to do.
 
 OsRmXFguozKpTZZ5X14zNO43379LZveg
@@ -259,15 +275,16 @@ The log contains a timestamp, the http user agent, and the message. There is no 
 
 Using [php include](https://www.php.net/manual/en/function.include.php), I might be able to include the password file in the log.
 I'll try this by setting the user agent in the request to 
-`
+```
 <? include "/etc/natas_webpass/natas26" ?>
-`
+````
+
 Also, there's a little bug in the safeinclude function. It detects directory traversal by looking for ../ and then logs the attempt before stripping out the characters. But then it continues to check for the file's existence and include it. So if I use ....// in place of ../ , the "corrected" string will still contain ../ which allows me to traverse.
 
 So I should be able to print the log file (which now hopefully includes the password) by letting the lang param to `....//logs/natas25_{session_id}.log`
 
 My edited request looks like this:
-`
+```
 GET /?lang=....//logs/natas25_mysess.log HTTP/1.1
 Host: natas25.natas.labs.overthewire.org
 User-Agent: <? include "/etc/natas_webpass/natas26" ?>
@@ -280,7 +297,7 @@ Connection: keep-alive
 Cookie: PHPSESSID=mysess
 Upgrade-Insecure-Requests: 1
 Cache-Control: max-age=0
-`
+```
 
 And the server responds with:
 ```
@@ -307,9 +324,9 @@ I don't see the log class actually being used by the other parts of the code, in
 So I don't know that I can trick the showImage to generate something other than an image. But the storeData function looks like it just reads the coordinates straight into a cookie that's base64 encoded. Maybe I can try injecting php similar to the previous level as a coordinate, and get the password included, and then decode the base64 blob that's returned as a cookie.
  
 I tried url-encoding `<? include "/etc/natas_webpass/natas27" ?>` as the x1 value, and then base64 decoding the drawing cookie:
-`
+```
 a:3:{i:0;a:4:{s:2:"x1";s:1:"1";s:2:"y1";s:1:"2";s:2:"x2";s:1:"5";s:2:"y2";s:1:"6";}i:1;a:4:{s:2:"x1";s:1:"7";s:2:"y1";s:1:"5";s:2:"x2";s:1:"4";s:2:"y2";s:1:"3";}i:2;a:4:{s:2:"x1";s:42:"<? include "/etc/natas_webpass/natas27" ?>";s:2:"y1";s:1:"5";s:2:"x2";s:1:"4";s:2:"y2";s:1:"3";}}
-`
+```
 
 So my php is set in there, but not resolved. I also get the following error displayed:
 `Warning: imageline() expects parameter 2 to be long, string given in /var/www/natas/natas26/index.php on line 66`
@@ -327,9 +344,9 @@ Finally, the script encodes and serializes the object.
 
 I use the blob that is output and replace the "drawing" cookie value before submitting the request.
 The page reloads with an image, but also with this error message:
-`
+```
 Fatal error: Cannot use object of type Logger as array in /var/www/natas/natas26/index.php on line 105
-`
+````
 
 Ok, but is my file there? I go to natas26.natas.labs.overthewire.org/img/myfile.php and:
 
@@ -614,5 +631,65 @@ Unfortunately, reversing the md5 hash is going to be a pain. Sidenote, adeafbadb
 
 And wait...I was wrong. I just looked up the documentation for [php md5_file](https://www.php.net/manual/en/function.md5-file.php) and learned that this function checks the md5 hash of the FILE and not the filename.
 
-Maybe that narrows it down some because it adds some constraints to the possible inputs that could produce the hash -- it has to be a script that prints the password. Fine, let's go.
+Anyway, thinking about it some more, it seems like a fool's game to attempt finding a very particular hash collision that is also an executable php file that prints the password. Especially since the hash to match is very intentionally crafted. It's actually probably made up.
 
+One thing that stands out is the fact that there's a class defined with a \__destruct method, which calls to mind php object injection (encountered in level 26). Unfortunately, here there is no explicit object deserialization. Googling around for 'php md5_file vulnerability' brought up an really interesting result: [What is Phar Deserialization](https://blog.ripstech.com/2018/new-php-exploitation-technique/).  
+
+What IS Phar deserialization, and what does it have to do with md5_file? Well, to summarize, a Phar is a php archive that will be deserialized if passed into a method that performs file operations, using the `phar://[path-to-phar]` wrapper format. Neat. The page goes on to demonstrate an example of creating a phar which includes as metadata a modified instance of the class they want to inject. When the wrapper path to the phar is used by the code under attack, it will be deserialized, and the object's \__destruct method will be called.
+
+Looking at the source code, the 'filename' and 'signature' variables are handled in \__destruct. If I can inject an Executor object that overrides these, I should be able to specify the file I want and check it against a signature of my choosing. This is at least 2 steps. First, I need to upload the script I want to be executed by the passthru. I also need to grab the md5 hash of the file. Then, I can craft a phar with a serialized Executor object with my chosen filename and signature values and upload that. 
+
+The php script itself is super simple:
+```
+<?php
+	echo file_get_contents('/etc/natas_webpass/natas34');
+?>
+```
+
+And I'll grab the md5:
+```
+$ md5 my.php
+MD5 (my.php) = d9dca0c068f8511f02ab559e1343ec30
+```
+
+Next, another php script to make a phar:
+```
+<?php
+	$phar = new Phar('my.phar');
+	$phar->startBuffering();
+	$phar->addFromString('test.txt', 'text');
+	$phar->setStub('<?php __HALT_COMPILER(); ?>');
+
+
+	class Executor {
+		private $filename = 'my.php'; 
+        private $signature = 'd9dca0c068f8511f02ab559e1343ec30';
+	}
+	
+	$obj = new Executor();
+	$phar->setMetadata($obj);
+	$phar->stopBuffering();
+?>
+```
+
+Executing the above php script creates a file called 'my.phar'. 
+
+Next, I upload the first php script. I intercept the POST request (using BurpSuite), and change the filename to 'my.php' instead of my session id.
+Then, I upload the phar file the same way -- modifying the request so that the file name is 'my.phar'.
+Ok, but here's the thing. I need to have the md5_file passed in the 'phar:\\' path of that file in order for it to be deserialized. So I guess I'll submit another upload request, but make the file name 'phar://my.phar' this time. The upload fails, but that shouldn't matter, because \__destruct is still called no matter what fails in \__construct. 
+
+And then I get this error output:
+
+```
+<b>Warning</b>:  md5_file(phar://my.phar): failed to open stream: internal corruption of phar &quot;/natas33/upload/my.phar&quot; (truncated manifest header) in <b>/var/www/natas/natas33/index.php</b> on line <b>43</b><br />
+Failur! MD5sum mismatch!<br>
+```
+Why is my manifest header truncated?! This is annoying. So I spend a good hour or two messing around to see if I can figure out what's wrong with my phar. The error message doesn't provide a lot of search results, and none that bring me any insight. I try regenerating it. Moving stuff around. Reading and re-reading the blog post, reading the (minimal) php documentation, and actually finding some other writeups of this challenge where people had used the same approach. I was encouraged to see I was on the right track (as I had no previous knowledge of Phar files, and zero php experience outside of tackling these Natas challenges, I could have easily been chasing a kooky idea). But then I'm discouraged, because the code in the other write ups was effectively the same as what I'd come up with.
+
+So I felt pretty stuck on this, and decided to try taking advantage of something I found in the last level while poking around with having remote code exec capabilities. There was some directory in /var/www/natas/ called natas33-new. Maybe I'll just try directory traversal and put my script up there.
+
+So I upload my first php script again, but this time make the name `../../var/www/natas/natas33-new/index.php`
+
+And then I just go to http://natas33-new.natas.labs.overthewire.org/index.php in my browser and yay:
+
+shu5ouSu6eicielahhae0mohd4ui5uig 
