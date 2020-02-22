@@ -5,61 +5,119 @@ Just log in to the webpage
 
 ## level 0 -> 1
 View source to find password.
-gtVrDuiDfck831PqWsLEZy5gyDz1clto
+<details><summary>Password</summary>
+	<p>	
+	gtVrDuiDfck831PqWsLEZy5gyDz1clto
+	</p>
+</details>
 
 ## level 1 -> 2
 You can't right click, but you can save the html and open it in a text editor.
-ZluruAthQk7Q2MqmDeTiUij2ZvWy2mBi
+<details><summary>Password</summary>
+	<p>	
+	ZluruAthQk7Q2MqmDeTiUij2ZvWy2mBi
+	</p>
+</details>
 
 ## level 2 -> 3
 If you inspect the page source, you'll see an image is loaded on the page. The image is stored in a directory named 'files'. You can visit the url for that directory and view all the files it contains.
-sJIJNW6ucpu6HPZ1ZAchaDtwd7oGrD14
+<details><summary>Password</summary>
+	<p>	
+	sJIJNW6ucpu6HPZ1ZAchaDtwd7oGrD14
+	</p>
+</details>
 
 ## level 3 -> 4
 So this one has a hint when you view the source. A comment that says "not even Google will find it this time..." The ellipsis made me suspicious, so I tried to see if anything came up when I added /robots.txt to the url. And yeah...there's a directory named there. Visit that directory and you'll find it.
-Z9tkRkWmpt9Qr7XrR5jWRkgOU901swEZ
+<details><summary>Password</summary>
+	<p>	
+	Z9tkRkWmpt9Qr7XrR5jWRkgOU901swEZ
+	</p>
+</details>
 
 ## level 4 -> 5
-A message which says I am visiting from "" instead of "http://natas5.natas.labs.overthewire.org/", plus a link to refresh the page. That link points to a php page. The div id is called viewsource. I opened the dev console before clicking the link. The page reloaded and the the "" was this time replaced by the current url. I took a look at the HTTP headers for the GET, and found that the referrer key contained the same value. By editing this header to contain the value specified in the message, I was able to resubmit the request and get the password.
-iX6IOfmpN7AYOQGPwtn3fXpbaJVJcHfq
+A message which says I am visiting from "" instead of "http://natas5.natas.labs.overthewire.org/", plus a link to refresh the page. That link points to a php page. The div id is called viewsource. I opened the dev console before clicking the link. The page reloaded and the the "" was this time replaced by the current url. 
+
+I took a look at the HTTP headers for the GET, and found that the referrer key contained the same value. By editing this header to contain the value specified in the message, I was able to resubmit the request and get the password.
+<details><summary>Password</summary>
+	<p>	
+	iX6IOfmpN7AYOQGPwtn3fXpbaJVJcHfq
+	</p>
+</details>
 
 ## level 5 -> 6
 Logging in got me "Access disallowed. You are not loged in". Inspecting the HTTP response, I noticed there was a cookie named 'loggedin' which was set to 0. I edited the cookie to be 1 and refreshed the page.
-aGoY4q2Dc6MgDq4oL4YtoKtyAg9PeHa1
+<details><summary>Password</summary>
+	<p>	
+	aGoY4q2Dc6MgDq4oL4YtoKtyAg9PeHa1
+	</p>
+</details>
 
 ## level 6 -> 7
-This one has an input field. The view source link gives you the source. It includes a file. This file has a variable called secret - FOEIUWGHFEEUHOFUOIU
+This one has an input field. The view source link gives you the source. It includes a file. This file has a variable called secret: 
+
+FOEIUWGHFEEUHOFUOIU
+
 Now if you input that secret, you can get the password.
-7z3hEENjQtflzgnT29q7wAvMNfZdh0i9
+<details><summary>Password</summary>
+	<p>	
+	7z3hEENjQtflzgnT29q7wAvMNfZdh0i9
+	</p>
+</details>
 
 ## level 7 -> 8
 Two links. Home and About. On the About page, there is a helpful comment to tell you where the password is.
-DBfUBfqQG69KvJvJ1iAbMoIpwSNQ9bWe
+<details><summary>Password</summary>
+	<p>	
+	DBfUBfqQG69KvJvJ1iAbMoIpwSNQ9bWe
+	</p>
+</details>
 
 ## level 8 -> 9
 Back to the input secret again. Now there is an encoded secret. The user input is base64 encoded, reversed, and then converted from binary to hex. So I will convert to binary, reverse, and base64_decode. I used an online php sandbox to do this because it was easy.
-oubWYf2kBq
-W0mMhUcRRnG8dcghE4qvk3JA9lGt8nDl
+<details><summary>Password</summary>
+	<p>	
+	W0mMhUcRRnG8dcghE4qvk3JA9lGt8nDl
+	</p>
+</details>
 
 ## level 9 -> 10
 This level has another input field that lets you search for words containing input. It greps through some dictionary.txt file...which doesn't appear to have anything interesting. 
+
 But it uses passthru which executes an arbitrary command and directly passes the output to the user.
-So I input: `dictionary.txt; ls -a; grep -i "2" `
+So I input: 
+
+`dictionary.txt; ls -a; grep -i "2" `
+
 That printed the directory for me. There are two files interesting.
+
 .htpasswd with
+
 natas9:$1$p1kwO0uc$UgW30vjmwt4x31BP1pWsV.
+
 natas9:$1$H1h4/vhv$sGSIWyboB82roKx9lNLlE/
+
 natas9:$1$G56GGLB5$XS1TpsdfDa8t4tvOx.V660
 
-Wait. didn't read the insturctions. Should be able to look at level 10's password directly. Have to wait until the site is back up :(
+Wait. didn't read the insturctions. Should be able to look at level 10's password directly:
+
 `dictionary.txt; cat /etc/natas_webpass/natas10 `
-nOpp1igQAkUzaI1GUUjzn1bFVj7xCNzu
+<details><summary>Password</summary>
+	<p>	
+	nOpp1igQAkUzaI1GUUjzn1bFVj7xCNzu
+	</p>
+</details>
 
 ## level 10 -> 11
 Now there is some attempt at client-side input validation. The characters [,],|,&,; are removed. 
 You can still hijack the use of grep though:
+
 `"." /etc/natas_webpass/natas11`
-U82q5TCMMQ9xuFoI3dYX61s7OZD9JKoK
+<details><summary>Password</summary>
+	<p>	
+	U82q5TCMMQ9xuFoI3dYX61s7OZD9JKoK
+	</p>
+</details>
 
 ## level 11 -> 12
 A cookie is generated server-side which is json-endoded, xor_encrypted with some unknown key, and then base-64 encoded. This cookie contains two fields - the background color as specified by the user, and a show-password flag. When you submit a request with a new background color, there is a script that checks that the 'bgcolor' key exists and that the value matches a regex. It then assigns that raw value to the array -- not the match. I thought this might be the hint, but I couldn't find a way to trick the regex and sneak in anything useful.
@@ -82,53 +140,92 @@ So looking back at XOR encryption. We have a value XOR'd with a key. But we can 
  We get our key! Great. Now we can forge a cookie.
  I wrote a php script that slightly modifies the xor_encrypt function to take the key as a parameter. By passing it our base64-decoded default cookie as `$in` and the default value array as the `$key`, the actual key is revealed.
  Now, I can pass in the array I want to submit (where showpassword is set to yes), and encode it with the true key. This should get me in.
- EDXp0pS26wLKHZy1rDBPUZk0RKfLGIR3
+ <details><summary>Password</summary>
+	<p>	
+ 	EDXp0pS26wLKHZy1rDBPUZk0RKfLGIR3
+	</p>
+</details>
 
 ## level 12 -> 13
 Now I'm allowed to upload a jpeg. What could go wrong here?
+
 So looking at the source, when a file is uploaded, a filename is randomly generated and returned back to you. While you're instructed to upload a jpeg, the file type isn't actually enforced. If you upload another type of file, you'll get a link returned to you that ends in a .jpeg extension. Where does the extension come from? Well it's not hardcoded in the php script. It's actually set in a hidden html tag. This gets passed up in the request, and is then used to specifiy the extension for the uploaded file. 
 
-So I can change the extension in the hidden field to php. And then upload a php script (see natas12.php) that prints the contents of the password file when I load the document.
-jmLTY0qiPZBbaKc9341cqPQZBJv7MQbY
+So I can change the extension in the hidden field to php. And then upload a php script (see [script here](natas12.php)) that prints the contents of the password file when I load the document.
+<details><summary>Password</summary>
+	<p>	
+	jmLTY0qiPZBbaKc9341cqPQZBJv7MQbY
+	</p>
+</details>
 
 ## level 13 -> 14
-K, now they only accept image files. 
+K, now they only accept image files.
+
 They are doing this by checking that `exif_imagetype(..)` does not return false. So basically, any type of image file can pass this check. More specifically, any file that has a header of a valid image type will pass. 
+
 I did a google search on embedding php into an image, and quickly found some information about adding php to gifs. I found a very tiny gif, opened it in a text editor, and basically pasted the same php code into it as used for the prevous level (changed the file to print, of course). I also changed the hidden element extension to gif.php (which is the extension I gave my file). Don't know if that's actually necessary (could have just named it .php). I've included the gif/php file in this repo.
-Lg96M10TdfaPyVBkJdjymbllQ5L6qdl1
+<details><summary>Password</summary>
+	<p>	
+	Lg96M10TdfaPyVBkJdjymbllQ5L6qdl1
+	</p>
+</details>
 
 ## level 14 -> 15
 Now there is a username and password to enter. Viewing the source, I see that it's accessing a mysql database to check the login. I'm betting this is a sql injection vulnerability. For a quick refresher, I checked out the [w3schools page on sql injection](https://www.w3schools.com/sql/sql_injection.asp).
+
 Literally the second example works.
-AwWj0w5cvxrZiONgZ9J5stNVkmxdk39J
+<details><summary>Password</summary>
+	<p>	
+	AwWj0w5cvxrZiONgZ9J5stNVkmxdk39J
+	</p>
+</details>
 
 ## level 15 -> 16
 This level has a username input box and a button labeled "check existence". When a username is entered, a query is executed against a mysql database to check if the user exists.  If you enter 'natas16', the output shows that this user exists in the table. I can try to inject input to change the query, no part of the result will be output to me. So basically, you're limited to knowing whether or not a query produced any results.
 
-The password can still be brute forced. At most, the password is 64 characters long (based on the schema revealed in the source file). If I can get a query that checks for username=natas16 and password=<the correct password>, I'll get a response that indicates the entry exists. 
+The password can still be brute forced. At most, the password is 64 characters long (based on the schema revealed in the source file). If I can get a query that checks for username=natas16 and password=(the correct password), I'll get a response that indicates the entry exists. 
 
 I had to figure out how to generate the url to make this http request in order to write a script for the brute force attack. The key here is using the sql 'LIKE' operator, to figure out what characters the password contains, and in what order. 
 
-The script ran for at least 10 minutes, but brute-forcing is slow. With patience, the password was got.
-WaIHEacj63wnNIBROHeqi3p9t0m5nhmh
+The [script](natas16.py) ran for at least 10 minutes, but brute-forcing is slow. With patience, the password was got.
+<details><summary>Password</summary>
+	<p>	
+	WaIHEacj63wnNIBROHeqi3p9t0m5nhmh
+	</p>
+</details>
 
 ## level 16 -> 17
 Now we are back at searching for text in 'dictionary.txt'. This time, [], ;,|,\`,and ' are filtered out.
 
-But you know what's cool? If you enter `$0` into the box, you get a list of words that contain 'sh'. So shell variables are expanded. I can run something like `$(grep x /etc/natas_webpass/natas17)` and the result is used by the wrapping grep command as search text. This in itself isn't usefull since the password isn't going to match anything in dictionary.txt. But I could append the output to another search string. For example, 'apples' returns 3 results. If I run `apples$(grep x /etc/natas_webpass/natas17)` , I get the same results, because there is no 'x' in the password, so the expression just evaluates to apples. But if I run `apples$(grep b /etc/natas_webpass/natas17)`, I get no results. This must be the case because the password contains a b, so the expression evaluates to applesb, which is not a word in dictionary.txt.
+But you know what's cool? 
+
+If you enter `$0` into the box, you get a list of words that contain 'sh'. So shell variables are expanded. I can run something like `$(grep x /etc/natas_webpass/natas17)` and the result is used by the wrapping grep command as search text. This in itself isn't usefull since the password isn't going to match anything in dictionary.txt. 
+
+But I could append the output to another search string. For example, 'apples' returns 3 results. If I run `apples$(grep x /etc/natas_webpass/natas17)` , I get the same results, because there is no 'x' in the password, so the expression just evaluates to apples. But if I run `apples$(grep b /etc/natas_webpass/natas17)`, I get no results. This must be the case because the password contains a b, so the expression evaluates to applesb, which is not a word in dictionary.txt.
 
 So I've modified the script I used in the last level to perform a similar brute force attack. By trying all the characters in the expression, I can find out which are contained in the password. Then, I can start building the password one character at a time until finally I have it.
-8Ps3H0GWbn5rd9S7GmAdgQNdkhPkq9cw
+<details><summary>Password</summary>
+	<p>	
+	8Ps3H0GWbn5rd9S7GmAdgQNdkhPkq9cw
+	</p>
+</details>
 
 ## level 17 -> 18
 On this level, looks like we are back to SQL injection. From the source, it appears mostly the same as level 15, but this time, you get no output either way. So I don't even know if the user exists or not. I had no idea where to start with this one, so I browsed through a few other people's write-ups for hints (trying to only read as far as needed to get a clue). And this is how I learned about time-based attacks.
 
-Apparently, you can add a sleep into a sql command. Remember in level 15, I was able to use the 'LIKE' comparison operator to test whether characters were contained in the password of interest. Well, I can combine these two tools in the following way: I can craft a query that sleeps if the password comparison check succeeds: ` select * from users where username=natas18 and password like binary <test value> and sleep(5)` 
+Apparently, you can add a sleep into a sql command. Remember in level 15, I was able to use the 'LIKE' comparison operator to test whether characters were contained in the password of interest. Well, I can combine these two tools in the following way: I can craft a query that sleeps if the password comparison check succeeds: 
+
+` select * from users where username=natas18 and password like binary <test value> and sleep(5)` 
+
 If the first two conditions are true, the sleep executes. Otherwise, the boolean expression evaluation short-circuits after the first false.
 So instead of checking my queries against some text I expect in the response, I can check if my queries take a long time to complete to determine what's stored in natas18's password.
 
-See natas18.py for the script.
-xvKIqDjy4OPv7wCRgDlmj0pFsCsDjhdP
+See [script here](natas18.py)
+<details><summary>Password</summary>
+	<p>	
+	xvKIqDjy4OPv7wCRgDlmj0pFsCsDjhdP
+	</p>
+</details>
 
 ## level 18 -> 19
 This level has a login form, which directs me to log in with admin credentials to receive natas19's password.
@@ -138,11 +235,14 @@ On the server, the \_SESSION array has a key called 'admin', which is set to 1 i
 
 So it seems that I can just try passing different PHPSESSID values along with my requests to see if an active session for admin already exists on the server. Bonus for me, I can see that the max session id possible is 640, so I know I won't be brute forcing forever.
 
-See the attached natas19.py script for the solution.
+See the [attached script](natas19.py) for the solution.
 
 Lo and behold, it works.
-
-4IwIrekcuZlA9OsjOkoUtwU6lhokCPYs
+<details><summary>Password</summary>
+	<p>	
+	4IwIrekcuZlA9OsjOkoUtwU6lhokCPYs
+	</p>
+</details>
 
 ## level 19 -> 20
 Instructions say this level uses mostly the same code as the previous level, except session IDs are no longer sequential.
@@ -153,6 +253,7 @@ First guess was that it was base-64 encoded, but there were no printable charact
 Can I just brute force all day? Seems annoying.
 
 I thought maybe it's a hash, so I tried putting it in crackstation.net which claims to have a massive set of rainbow tables, but there was no match found.
+
 ```
 PHPSESSID:"3237332d6e617461733139" - 273-natas19
 PHPSESSID:"  37372d6e617461733139" -  77-natas19
@@ -170,40 +271,58 @@ Converting 2d6e617461733139 from hex to ascii reveals '-natas19'
 Let's say that the number in front of -natas19 is still constrained within the range 0-640 and try editing the last script to work...
 
 I ran it the first time, and got no hits. I looked closely at the wording on the page -- it says to login as 'admin' to get the credentials for natas20. So I altered my script so that the suffix was -admin and ran it again. That was a good guess.
-eofm3Wsshxc5bwtVnEuGIlr7ivb9KABF
+
+[script](natas20.py)
+<details><summary>Password</summary>
+	<p>	
+	eofm3Wsshxc5bwtVnEuGIlr7ivb9KABF
+	</p>
+</details>
 
 ## level 20 -> 21
 This level also requires you to login as an admin to retrieve the next password, but also has an input field that allows you to change your name.
+
 Source code is provided again, and this time I have to learn a little bit about how session data can be managed with php. There's a function `session_set_save_handler` which takes a set of callbacks for opening, closing, reading, writing, and destroying sessions. In this example, only read and write handlers seem to be functional.
 
 I can also see that session ids are only allowed to contain letters, numbers, -, and spaces. My assigned session id is `PHPSESSID:"qj3reabo65f24jvsg50d0008r6"`
+
 The session's data is stored in a file located at <Session Save Path>/mysess_{session id}. This file has permissions set to 0600.
 
 When you set a name, this gets saved to the session array, and is reflected back into the input field. Maybe there is a way to inject something here. 
 
 Going back to the code where the session data is saved, each key-value pair is saved into the file:
+```
 name joe
 key value
+```
 
 When it's read back out, it splits lines out by detecting \n, and then each line is broken into key and value based on encountering a whitespace character.
 Maybe I can set a name such that when it is read back from the file, it's read as an additional key-value pair. I will have to hide a \n in there. It doesn't look like 
 
 Using the developer tools in the browser, I was able to modify the previous POST request to send params of:
+
 `%0Aadmin%201`
 
 When I loaded the page again, I was admin.
-
-IFekPyrQXftziDEsUr3x21sYuahypdgJ
+<details><summary>Password</summary>
+	<p>	
+	IFekPyrQXftziDEsUr3x21sYuahypdgJ
+	</p>
+</details>
 
 ## level 21 -> 22
 Loggin into this page, I'm told again to login as admin, but also that the page is "colocated" with another url. Following the link, I have to log in again to see some kind of css style experimenter form. I have source code to both pages.
+
 I'm going to assume that 'colocated' probably means that sessions are somehow shared between both sites. So if I can set admin in the css form site, which takes input, I might be able to hijack that session from the other page.
 
 Looking at the source code, I see that it restricts keys received in the POST request to those expected on the form. I also see that if a 'submit' key is in the request, it will store each key-value pair in the request to the SESSION array. 
 
 Again, I used the dev tools in the browser to modify the request params. I tried adding 'admin=1' in addition to the existing params, but that didn't work. I tried resubmitting the POST with just `submit=Update&admin=1` as the request body. I then copied the session id cookie after the request completed, went back to the natas21.natas.labs.overthewire.org page, and overwrote that session id. I resumbitted the GET with this new session ID, and that did the trick.
-
-chG9fbe1Tq2eWVMgjYYD1MsfIvN461kJ
+<details><summary>Password</summary>
+	<p>	
+	chG9fbe1Tq2eWVMgjYYD1MsfIvN461kJ
+	</p>
+</details>
 
 ## level 22 -> 23
 This is a blank page, except for a view sourcecode link. 
@@ -216,18 +335,27 @@ I can confirm that when I add "revelio" as a param in the url, I get a 302 back 
 Another thing that I noticed in the documentation for header Location was that exit should be called after setting the location to prevent the rest of the code from being executed. This is absent in the source code example. So hypothetically, the rest of the php should be executed, meaning credentials will be displayed as long as 'revelio' in in the request.
 
 While the browser seemed to automatically redirect once receiving a 302 response code in the header, curl does not automatically follow redirects. So a simple curl command revealed the password:
-`curl -u natas22:chG9fbe1Tq2eWVMgjYYD1MsfIvN461kJ http://natas22.natas.labs.overthewire.org?revelio`
 
-D0vlad33nQF0Hz2EP255TP5wSW9ZsRSE
+`curl -u natas22:chG9fbe1Tq2eWVMgjYYD1MsfIvN461kJ http://natas22.natas.labs.overthewire.org?revelio`
+<details><summary>Password</summary>
+	<p>	
+	D0vlad33nQF0Hz2EP255TP5wSW9ZsRSE
+	</p>
+</details>
 
 ## level 23 -> 24
 Here we have an input box labelled 'Password' with a Login button. And a view sourcecode link.
+
 This one has nothing to do with sessions. It looks for a passwd request parameter and checks that it contains the substring 'iloveyou' and also that it is greater than 10.
+
 There is also a comment `//morla / 10111`. The total length of the input is constrained to 20 characters.
 
 I literally just took a wild guess and added `?passwd=10111iloveyou` to the url and that was all I needed to do.
-
-OsRmXFguozKpTZZ5X14zNO43379LZveg
+<details><summary>Password</summary>
+	<p>	
+	OsRmXFguozKpTZZ5X14zNO43379LZveg
+	</p>
+</details>
 
 ## level 24 -> 25
 This looks almost exactly like the previous level, except this time, the string that passwd value is compared against is censored. That morla comment is still there.
@@ -255,6 +383,9 @@ Welcome, authorized user!
 ```
 
 So I tried this out...altered the query param of passwd to be passwd[]. Resubmitted the request and got a funny response:
+<details><summary>Password</summary>
+	<p>	
+
 ```
 Warning: strcmp() expects parameter 1 to be string, array given in /var/www/natas/natas24/index.php on line 23
 
@@ -262,6 +393,8 @@ The credentials for the next level are:
 
 Username: natas25 Password: GHF6X7YwACaYYssHVY05cFq83hRktl4c
 ```
+</p>
+</details>
 
 PHP is...special.
 
@@ -271,6 +404,7 @@ Looks like session ids are back, and lang is a query string. The available optio
 Viewing the source, I see that the code uses the lang param to access a file stored at language/en. It's passes to a function called safeinclude() which strips out `../` and blocks anything containing the substring "natas_webpass", which is where the password is stored.
 
 One thing to note, is that if a directory traversal or password file access is attempted, this is logged in a file at /var/www/natas/natas25/logs/natas25_{session_id}.
+
 The log contains a timestamp, the http user agent, and the message. There is no input validation on the user agent, so maybe this is a place to inject some php.
 
 Using [php include](https://www.php.net/manual/en/function.include.php), I might be able to include the password file in the log.
@@ -300,12 +434,15 @@ Cache-Control: max-age=0
 ```
 
 And the server responds with:
+<details><summary>Password</summary>
+	<p>	
+
 ```
 [10.02.2020 14::09:04] oGgWAJ7zcGT28vYazGo4rkhOPDhBu34T
  "Directory traversal attempt! fixing request."
  ```
-
-oGgWAJ7zcGT28vYazGo4rkhOPDhBu34T
+</p>
+</details>
 
 ## level 26 -> 27
 
@@ -313,11 +450,12 @@ Oh great. This level has four input boxes! It commands me to draw a line by ente
 I tried entering 4 values and it returned a black png...hmm.
 
 Let's read the given source:
-There is a Logger class that handles writing to a log file for the duration of the session. 
-There is a showImage function which builds an img tag out of the given file name.
-There is a drawImage function which creates a png and writes it to the given file .
-There is a drawFromUserdata function which gets the coordinates from the request and also reads any drawings stored as cookies.
-Finally, there is a storeData function that gets the values from the request and serializes them before setting as the "drawing" cookie.
+
+* There is a Logger class that handles writing to a log file for the duration of the session. 
+* There is a showImage function which builds an img tag out of the given file name.
+* There is a drawImage function which creates a png and writes it to the given file .
+* There is a drawFromUserdata function which gets the coordinates from the request and also reads any drawings stored as cookies.
+* Finally, there is a storeData function that gets the values from the request and serializes them before setting as the "drawing" cookie.
 
 I don't see the log class actually being used by the other parts of the code, interestingly. 
 
@@ -329,6 +467,7 @@ a:3:{i:0;a:4:{s:2:"x1";s:1:"1";s:2:"y1";s:1:"2";s:2:"x2";s:1:"5";s:2:"y2";s:1:"6
 ```
 
 So my php is set in there, but not resolved. I also get the following error displayed:
+
 `Warning: imageline() expects parameter 2 to be long, string given in /var/www/natas/natas26/index.php on line 66`
 
 The decoded cookie looks a little weird, so upon closer inpection of the source, I see that php serialize() is used before it is encoded. I looked up the docs for serialize, and then also [unserialize](https://www.php.net/manual/en/function.unserialize.php) which has a big warning about not trusting user input while unserializing as it could result in code loading and execution.
@@ -349,13 +488,18 @@ Fatal error: Cannot use object of type Logger as array in /var/www/natas/natas26
 ````
 
 Ok, but is my file there? I go to natas26.natas.labs.overthewire.org/img/myfile.php and:
-
-55TBjpPZUUJgVP5b3BnbG6ON9uDPVzCJ 
+<details><summary>Password</summary>
+	<p>	
+	55TBjpPZUUJgVP5b3BnbG6ON9uDPVzCJ 
+</p>
+</details>
 
 ## level 27 -> 28
 
 This is another user name and password page. Entering 'natas27' and the level password doesn't log me in. Taking a look at the source, there's a comment:
+
 `//morla / 10111`
+
 This seems to work, as the page displays a message: User morla was created!
 
 There is also a comment stating that the database is cleared every 5 minutes. Guessing this will be important -- potentially there will be a time window during which I must complete my attack.
@@ -399,46 +543,66 @@ The next query that checks for username='natas28', BOTH results will be returned
 
 When I put this to the test (1. create an "evil" natas28 with no password, 2. Log in as regular Natas28 with no password), I get this result: 
 
+<details><summary>Password</summary>
+	<p>	
 Welcome natas28!<br>Here is your data:<br>Array
 (
     [username] =&gt; natas28
     [password] =&gt; JWwR438wkgTsNKBbcJoowyysdM82YjeF
 )
+</p>
+</details>
 
 ## Level 28 -> 29
 
 The situation just got real -- no source available in this level. I'm presented with a "Joke Database" with a text input box and search button.
 Just to check, I took a look at the page html source. The only thing interesting is the following comment:
+
 `<!-- 
     morla/10111 
     y0 n0th!
 -->`
 
 If I hit search without entering any text, The response comes back with the following location: 
+
 ` search.php/?query=G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcjPLof%2FYMma1yzL2UfjQXqQEop36O0aq%2BC10FxP%2FmrBQjq0eOsaH%2BJhosbBUGEQmz%2Fto%3D`
+
 The browser then redirects to this page, and displays some jokes.
 
 Url decoded, this is `G+glEae6W/1XjA7vRm21nNyEco/c+J2TdR0Qp8dcjPLof/YMma1yzL2UfjQXqQEop36O0aq+C10FxP/mrBQjq0eOsaH+JhosbBUGEQmz/to=`
+
 Which looks like base64 encoding. 
 
-I tried with the query 'cow', and got redirected to `G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcjPIpuCdGvo%2FlSLmvzc7sI%2Bm6mi4rXbbzHxmhT3Vnjq2qkEJJuT5N6gkJR5mVucRLNRo%3D`
+I tried with the query 'cow', and got redirected to 
+
+`G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcjPIpuCdGvo%2FlSLmvzc7sI%2Bm6mi4rXbbzHxmhT3Vnjq2qkEJJuT5N6gkJR5mVucRLNRo%3D`
+
 Which apparently has no jokes.
 
 So I'm unsure what these strings of characters are, but I notice the url decoded forms have several forward slashes. I tried removing everything after the first slash and resubmitting the request. I get the following error:
+
 `Incorrect amount of PKCS#7 padding for blocksize`
 
 PKCS7 is a standard defined in [RFC 2315 - Cryptographic Message Syntax](https://tools.ietf.org/html/rfc2315). So basically, this query string is encrypted. 
+
 I tried a number of various search queries, and one thing that stood out to me is that the beginning part of the encrypted query param was always the same. 
+
 I also tried reapeatedly prefixing a query (cow) with successively larger numbers of the character 'a', and was able to find a few additional patterns.
+
 With every additional 16 a's, the length of the encrypted string increases. This suggests the encryption scheme is a block cipher with a block size of 16 bytes. 
+
 I think this reveals that the cipher is using ECB mode, since I can show that identical pieces of plaintext result in the same ciphertext.
 
 I spent some time prepending successive numbers of 'a's before my query, and found that after 10, one more block becomes fixed:
-G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcj PJcgFy9Kftj4uxTZFMlx6iW Awjck%2BiODOmY8IWnZPcoVG IjoU2cQpG5h3WwP7xz1O3YrlHX2nGysIPZGaDXuIuY 10 b's plus cow
-G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcj PLAhy3ui8kLEVaROwiiI6Oe Awjck%2BiODOmY8IWnZPcoVG IjoU2cQpG5h3WwP7xz1O3YrlHX2nGysIPZGaDXuIuY 10 a's plus cow
+
+G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcj PJcgFy9Kftj4uxTZFMlx6iW Awjck%2BiODOmY8IWnZPcoVG IjoU2cQpG5h3WwP7xz1O3YrlHX2nGysIPZGaDXuIuY (10 b's plus cow)
+
+G%2BglEae6W%2F1XjA7vRm21nNyEco%2Fc%2BJ2TdR0Qp8dcj PLAhy3ui8kLEVaROwiiI6Oe Awjck%2BiODOmY8IWnZPcoVG IjoU2cQpG5h3WwP7xz1O3YrlHX2nGysIPZGaDXuIuY (10 a's plus cow)
 
 So that means the beginning of the encrypted query takes of part of that block. It's also clear that there is some text appended to the end of the input query.
+
 I'm guessing this is some sql query to get jokes LIKE the input text. I was able to confirm this by entering 9 a's so that the last character in that encrypted block is the first character appended to the input.
+
 Then I had to try adding a 10th character to my input to see which resulted in the same encrypted character. Turns out it's '%', which gives more evidence that the encrypted query is a sql LIKE statement.
 
 This trick can actually help get past the escaping of single-quote characters. If I enter 9 characters + single quote, the 10th character of the encrypted result will be the backslash escaping the quote. So the next block will contain the encrypted value of single quote.
@@ -454,13 +618,17 @@ So the idea:
 
 If it works, the resulting query string should return the next password.
 
-(Spoiler: it does. See natas28.py)
-
-airooCaiseiyee8he8xongien9euhe8b
+(Spoiler: it does. See [script](natas28.py))
+<details><summary>Password</summary>
+	<p>	
+	airooCaiseiyee8he8xongien9euhe8b
+</p>
+</details>
 
 ## Level 29 -> 30
 
 Ah, great. This level is in 1337 speak and right clicking has been blocked. I can still see the html in dev tools. There's a drop down menu which allows you to select from perl underground 0-5.
+
 When you select one, a page called index.pl is loaded, with a query parameter of file with a value of the file name. The page contains a whole bunch of text that appears to be console output.
 
 So let's see what the heck is interesting in those files...
@@ -469,27 +637,39 @@ First read through the first underground. It's a lot of text. So bascially, what
 So it's totally possible that a usable exploit (or hint pointing towards one) is contained somewhere in here. It's also possible there isn't.
 
 What do I know?
+
 There is a perl script that can be given a file name. It outputs the html for the page, and includes the file output if provided. I don't know what format the file is (is it just text? or is it an executable script itself that generates the text?)
 Also there is a handler that captures the right click and shows an alert to prevent one from viewing the source. 
 
 Alright fine. I'll just try passing in the url encoded path to the password as the file.
+
 I get the response - `meeeeeep!` included in the html.
+
 That tells me that there is some kind of logic to detect and prevent direct access to the path.
 I tried using HTML entity encoding for the '\' as well. More `meep`
 
 More guessing here: index.pl executes with the file name as a parameter. If it opens it and prints it, it may be using the `open()` function -- which can be tricked into executing commands. If the "filename" begins with a '|' character, the output of what follows is piped into the file handle.
 
 So let me see if I can send a param for file that prints something.
+
 I tried `http://natas29.natas.labs.overthewire.org/index.pl?file=|cat+index.pl` and `http://natas29.natas.labs.overthewire.org/index.pl?file=|cat+perl+underground` but got no input.
+
 Maybe getting the perl script to print itself is goofy, but 'perl underground' exists. But there is a space in the file name. Maybe I need to try quotes.
+
 Url encoded, that is `http://natas29.natas.labs.overthewire.org/index.pl?file=|cat+%22perl+underground%22`. And yes, I see the file is printed just as if I'd passed in the filename itself.
 
 So that means I can execute code. Unfortunately, it seems like 'natas30' or maybe even 'natas' is being filtered out, so I have to get around that. One peculiar thing I know is that if you put an open and close double-quote in the middle of a file name on the command line, it's basically ignored. I tried `|cat "/etc/na""tas_webpass/na""tas30"` , but still no password. Ok then.
-I took a read through [PayloadsAllTheThings - File Inclusion](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/File%20Inclusion) for some hints, and the first suggesting is that terminating with a null byte (%00) can work. The scripting language may not see it as a null terminator, but the OS will. 
-So I gave that a shot. And it worked.
-The URL encoded magic string: `/index.pl?file=|cat+%22/etc/na%22%22tas_webpass/na%22%22tas30%22%00`
 
-wie9iexae0Daihohv8vuu3cei9wahf0e
+I took a read through [PayloadsAllTheThings - File Inclusion](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/File%20Inclusion) for some hints, and the first suggesting is that terminating with a null byte (%00) can work. The scripting language may not see it as a null terminator, but the OS will. 
+
+So I gave that a shot. And it worked.
+
+The URL encoded magic string: `/index.pl?file=|cat+%22/etc/na%22%22tas_webpass/na%22%22tas30%22%00`
+<details><summary>Password</summary>
+	<p>	
+	wie9iexae0Daihohv8vuu3cei9wahf0e
+</p>
+</details>
 
 ## Level 30 -> 31
 
@@ -507,8 +687,11 @@ But StackExchange does. It looks like someone actually posted this code to secur
 He provides a sample input, which I've adapted to: `username=natas31&password='lol'+or+1&password=4`
 
 And that's it.
-
-hay7aecuungiuKaezuathuk9biin0pu1
+<details><summary>Password</summary>
+	<p>	
+	hay7aecuungiuKaezuathuk9biin0pu1
+</p>
+</details>
 
 ## Level 31 -> 32
 
@@ -543,8 +726,11 @@ Upload
 ```
 
 Now according to this presentation, the line `if ($cgi->upload('file'))` will check if ANY of the file parameters have been uploaded. Meaning I can provide two, and only one has to be uploadable in order for this check to succeed.
+
 Next, the statement `$cgi->param('file')` will return all of the matching parameter values, but only the first one will actually get stored to a variable on the left side of an assignment statement.
+
 Another good tidbit of information -- if this first 'file' value is a scalar, a plain string will be stored, and not a file handle. Why is this important? 
+
 The while loop which iterates through the file contents, `while (<$file>)` does something special if the string value of $file is ARGV. It will loop through the query parameters and pass them to an open() call. If $file was any other plain string, nothing useful would happen.
 
 Putting this all together, I formed the following request:
@@ -582,7 +768,11 @@ Upload
 ``` 
 
 And password.
-no1vohsheCaiv3ieH4em1ahchisainge
+<details><summary>Password</summary>
+	<p>	
+	no1vohsheCaiv3ieH4em1ahchisainge
+</p>
+</details>
 
 ## level 32 -> 33
 
@@ -612,7 +802,11 @@ And that works!
 So looks like I have to run getpassword: `/index.pl?./getpassword%20|`
 
 And there it is.
-shoogeiGa2yee3de6Aex8uaXeech5eey
+<details><summary>Password</summary>
+	<p>	
+	shoogeiGa2yee3de6Aex8uaXeech5eey
+</p>
+</details>
 
 ## level 33 -> 34
 
@@ -621,13 +815,12 @@ I think this is the last level? FINALLY?!
 This is another upload form, that directs me to upload a firmware update. Let's look at the source code.
 
 We're back in magical php land. The form specifies a max file size of 4096 (bytes?) and names the file the session id. On the upload, an instance of a class called Executor is created.
+
 This class has a private member called signature, which is set to the following: adeafbadbabec0dedabada55ba55d00d
 
 It checks the file size first. If it's not too big, it uploads it to /natas33/upload/ . Once that's successful, it attempts to run the "firmware" by using php passthru -- IF the md5 hash of the filename is equal to the signature.
 
-Ok. So I think this is what I need to do. First, I need to figure out what will hash to the signature value, and set that as my session id. This should get my filename to pass the check. Then, it should just be a matter of uploading a script that prints the password file.
-
-Unfortunately, reversing the md5 hash is going to be a pain. Sidenote, adeafbadbabec0dedabada55ba55d00d is "A deaf bad babe coded a badass bass dood". Ok then.
+Sidenote, adeafbadbabec0dedabada55ba55d00d is "A deaf bad babe coded a badass bass dood". Ok then.
 
 And wait...I was wrong. I just looked up the documentation for [php md5_file](https://www.php.net/manual/en/function.md5-file.php) and learned that this function checks the md5 hash of the FILE and not the filename.
 
@@ -691,5 +884,8 @@ So I felt pretty stuck on this, and decided to try taking advantage of something
 So I upload my first php script again, but this time make the name `../../var/www/natas/natas33-new/index.php`
 
 And then I just go to http://natas33-new.natas.labs.overthewire.org/index.php in my browser and yay:
-
-shu5ouSu6eicielahhae0mohd4ui5uig 
+<details><summary>Password</summary>
+	<p>	
+	shu5ouSu6eicielahhae0mohd4ui5uig 
+</p>
+</details>
