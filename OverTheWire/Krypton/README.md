@@ -52,3 +52,26 @@ Maybe there's a more automated way to do this.
 </details>
 
 ## level 4 -> 5
+
+This one required some programming. What we have here is a [Vignere Cipher](https://en.wikipedia.org/wiki/Vigen%C3%A8re_cipher). Basically, there is a key used to encrypt the text in the following way:
+* Each letter in the key represents a shift. If the first character is 'D', then the plaintext will be turned into ciphertext by shifting the letter four places forward in the alphabet.
+* The first letter of the key encrypts the first letter of the plaintext, the second letter of the key encrypts the second letter of the plaintext, and so on. After using the last character in the key, you start over at the first letter of the key again. Since we know our key is 6 letters long, every sixth character will be encrypted using the same key.
+* To decrypt, the ciphertext is operated on in reverse. Each letter of the ciphertext is shifted BACK by the shift value of the corresponding key position.
+
+In this level, we get the encrypted key, plus two text files encrypted using the same key. This gives us probably enough ciphertext to try breaking it using frequency analysis in the following way:
+* Split the text into 6 groups, so that each group contains all the text encrypted by the same letter in the key.
+* Count the frequencies of the characters within each group.
+* Assume the most frequently occuring character per group represents 'E'
+* Find the distance between that most frequent character and 'E' - This is our shift
+* Translate that shift to a letter for that position in the key (e.g. if the shift was 4, the letter in the key will be 'D')
+* Once we've built our key, go through the texts again, this time subtracting from the ciphertext to reveal the plaintext. So if the nth-modulo-6 letter of our ciphertext is 'Y', and the nth letter of the key is 'F', 'Y' is shifted back 5 places to 'T'
+
+If all goes well, we should see all the plaintext. Luckily, there were no shenanigans here, and the assumption that the most frequently occuring character in each group represented 'E' was correct.
+
+I wrote a [python script](krypton5.py) to solve.
+
+<details><summary>Password</summary>
+	<p>	
+	CLEARTEXT
+</p>
+</details>
