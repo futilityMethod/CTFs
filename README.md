@@ -17,8 +17,8 @@ My [WeChall profile](https://www.wechall.net//profile/futilitymethod)
 * [Writeup](/OverTheWire/Natas/)
 
 ### [Krypton](https://overthewire.org/wargames/krypton/)
-* Krypton is all about code breaking. Currently in progress.
-* [Writeup-IN PROGRESS](/OverTheWire/Krypton/)
+* Krypton is all about code breaking. I really enjoyed these challenges, and found that writing some python scripts really helped with the second half.
+* [Writeup](/OverTheWire/Krypton/)
 
 
 

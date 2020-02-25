@@ -75,3 +75,103 @@ I wrote a [python script](krypton5.py) to solve.
 	CLEARTEXT
 </p>
 </details>
+
+## level 5 -> 6
+
+The instructions for this level:
+```
+FA can break a known key length as well. Lets try one last polyalphabetic cipher, but this time the key length is unknown.
+```
+
+Great. Now I don't even know how long the key is. Lucky for me, something called the [Index of Coincidence](http://practicalcryptography.com/cryptanalysis/text-characterisation/index-coincidence/) should be able to help me find the key length.
+
+Basically, the index of coincidence measures how close a frequency distribution is to a uniform distribution. For texts in english, that value is typically near 0.06. Because our ciphertext is generated using substitution ciphers, that distribution won't change. Go [here](http://practicalcryptography.com/cryptanalysis/stochastic-searching/cryptanalysis-vigenere-cipher/) for a good explanation.
+
+The idea is to try out different key lengths, partition the text accordingly, and get the average IoC across the partitions. So for a key of length 2, we split the text into 2 groups (one for each letter of the key), and get the IoC for each group. Finally we calculate the mean IoC.
+
+By doing this for various potential key lengths, we should be able to guess what the real key length is by seeing which one produces an average IoC that's close to 0.06.
+
+I wrote a [python script](krypton6.py) to help, and used the third found ciphertext (since it was the longest):
+```
+Average ic for key length 1is 0.0408107564477
+Average ic for key length 2is 0.040874315115
+Average ic for key length 3is 0.0488251314946
+Average ic for key length 4is 0.0405931132399
+Average ic for key length 5is 0.0407136937137
+Average ic for key length 6is 0.0492468684764
+Average ic for key length 7is 0.0402454400087
+Average ic for key length 8is 0.0405921410917
+Average ic for key length 9is 0.0624730040047
+Average ic for key length 10is 0.040894984326
+Average ic for key length 11is 0.0407623524473
+Average ic for key length 12is 0.049488108895
+Average ic for key length 13is 0.0404412077371
+Average ic for key length 14is 0.0401688245191
+```
+Looking at the output, it seems most likely that the key length is 9.
+
+I can use my script from the previous level to try cracking the cyphertext with an assumed key length of 9:
+```
+block 0: 
+top character: O: 63
+shift is 10
+Key is K
+block 1: 
+top character: I: 66
+shift is 4
+Key is KE
+block 2: 
+top character: C: 74
+shift is 24
+Key is KEY
+...
+...
+...
+Key is KEYLENGTH
+```
+After that, I get the decrypted message and password output.
+<details><summary>Password</summary>
+	<p>	
+	RANDOM
+</p>
+</details>
+
+## level 6 -> 7
+
+This appears to be the final level of the challenge.
+
+The readme gives some background on the use of randomness in cryptographic algorithms, block vs. stream ciphers, and finally introduces the challenge in this level: an XOR stream cipher. 
+
+There is a keyfile.dat and a binary called encrypt6, which have been used to encrypt krypton7. It suggests that I look into using [cryptool](https://www.cryptool.org/en/).
+
+And for reference, the password is encrypted as `PNUKLYLWRQKGKBE`.
+
+So that's taking forever to download. In the meantime, I scp'd the binary off the kryptos host and loaded it up in IDA to take a look. The program has some basic checking to make sure the command line arguments are provided and that the keyfile can be opened. Aside from that, what sticks out to me is a function called 'lfsr'.
+
+LFSR stands for Linear Feedback Shift Register, which is a method of generating bit sequences for stream ciphers. If the LFSR is big enough, the resulting bit sequence can look random, but it will actually repeat. I liked the [RIT CSCI 462 Lecture Notes](https://www.cs.rit.edu/~ark/462/module02/notes.shtml) as a reference. 
+
+So wild guess -- this challenge uses a fairly small LFSR. I also know the key must be pretty small, too. Though I can't read it, I can see that it's 11 bytes in size.
+
+And if I can assume the cipher is pretty weak and ends up repeating, I should be able to verify that with a chosen plaintext. I can encrypt a whole bunch of the same character and find out where the pattern starts repeating.
+
+Ok. So I created a file of 100 A characters and encrypted it using the binary. The resulting ciphertext:
+```
+EICTDGYIYZKTHNSIRFXYCPFUEOCKRN EICTDGYIYZKTHNSIRFXYCPFUEOCKRN EICTDGYIYZKTHNSIRFXYCPFUEOCKRN EICTDGYIY
+```
+I added spaces where it repeated, which looks like is every 30 characters. So the first A is shifted to E, the second to I, and so on. 
+
+Before I assume I can use the known ciphertext as a set of shifts, let me try again with a file of 'B's:
+`FJDUEHZJZALUIOTJSGYZDQGVFPDLSOFJDUEHZJZ`
+So A + 1 is B, and likewise E + 1 is F. So yes, I can use the known ciphertext as a series of shifts.
+
+To decrypt my key, I have to reverse it. The first shift of my known ciphertext to plaintext is 'E' to 'A', which is a shift of 4. So I'll shift the first character, 'P', backwards by 4, to get 'L'.
+
+I wrote [another python script](krypton7.py) to help:
+
+<details><summary>Password</summary>
+	<p>	
+LFSRISNOTRANDOM
+</p>
+</details>
+
+And yay that concludes the Krypton box! 
