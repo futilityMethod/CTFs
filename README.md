@@ -20,5 +20,7 @@ My [WeChall profile](https://www.wechall.net//profile/futilitymethod)
 * Krypton is all about code breaking. I really enjoyed these challenges, and found that writing some python scripts really helped with the second half.
 * [Writeup](/OverTheWire/Krypton/)
 
-
+### [Narnia](https://overthewire.org/wargames/narnia/)
+* Another vulnerable linux host challenge
+* [Write-up IN PROGRESS](/OverTheWire/Narnia) 
 
