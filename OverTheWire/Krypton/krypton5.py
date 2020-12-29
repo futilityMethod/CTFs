@@ -1,6 +1,7 @@
-# Split file into six strings (key length is 6)
-files = ["file1", "file2", "file3"]
-blocks = ["", "", "", "", "", ""]
+# Key length determines how many blocks of text we break our files into
+key_len = 9
+files = ["file1", "file2", "file3", "file4"]
+blocks = [""] * key_len
 
 def check_freq(x):
     freq = {}
@@ -13,7 +14,7 @@ for f in files:
 		count = 0
 		for line in fileObj:
 			for ch in line:
-				blocks[count % 6] += ch
+				blocks[count % key_len] += ch
 				count = count + 1
 
 # For each string, calculate the character frequencies
@@ -48,7 +49,7 @@ for f in files:
 		newText = ""
 		for line in fileObj:
 			for ch in line:
-				newChar = chr(((ord(ch) - ord(keyStr[count % 6])) % 26) + 65)
+				newChar = chr(((ord(ch) - ord(keyStr[count % key_len])) % 26) + 65)
 				newText += newChar
 				count = count + 1		
 		print newText
