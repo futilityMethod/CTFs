@@ -1,6 +1,6 @@
-==HackerOne Hacker101 CTF==
+# HackerOne Hacker101 CTF
 
-=== A little something to get you started ==
+## A little something to get you started
 A simple page with a message: `Welcome to level 0. Enjoy your stay.`
 
 Opening the browser dev tools, you can see that an image called background.png has been loaded. Opening that image in a new tab, the flag is revealed.
@@ -11,7 +11,7 @@ Opening the browser dev tools, you can see that an image called background.png h
 </p>
 </details>
 
-=== Micro-CMS v1 ===
+## Micro-CMS v1
 This one has 4 flags to capture.
 
 The web page has three links: Testing, Markdown Test, and Create a new page. Visiting the links, the site appears to let you create pages using Markdown. On the create page, there is a note that Markdown is supported, but scripts are not. 
@@ -75,7 +75,7 @@ And then I found the last flag by accident, on the edit page. I fat-fingered the
 </p>
 </details>
 
-=== Micro-CMS v2 ===
+## Micro-CMS v2 
 
 Another Micro CMS site, this time with three flags to find. 
 
@@ -86,7 +86,7 @@ Also found that there is a forbidded page 3.
 Decided to give [OWASP ZAP](https://www.zaproxy.org/) a try, since I hadn't used it before. Just ran the automated scan to see if anything came up.
 
 Turns out that the scan found one of the flags for me. So while attempting to navigate to an edit page in the browser, I'm redirected to the login page. But as ZAP has discovered, requesting the edit page while using the POST verb and including values for username and password in the request body will generate a response containing a flag:
-<details><summary>Flag 1/summary>
+<details><summary>Flag 1</summary>
 	<p>	
 ^FLAG^844e7cfe80058456158057d1e62fc271aa2e525b9b2a871ce55c7c1b3f4fee1b$FLAG$
 </p>
@@ -165,7 +165,7 @@ Result:
 ('password:', 'brooke')
 ```
 Lucky for me, the password was actually all lower case, so I didn't have to go through the exercise of trying all case variants. Logging in with the credentials yields a flag:
-<details><summary>Flag 2/summary>
+<details><summary>Flag 2</summary>
 	<p>	
 ^FLAG^2c28140afa9597a8d90aba72ad4e4708599f2e5aeee0f6e2efaca2227ccc57c7$FLAG$
 </p>
@@ -179,7 +179,7 @@ python sqlmap.py -v -u http://[target]/login --method=POST --data="username=emmi
 ```
 This skips attempting to inject the password param since it's not injectable. The -a option is to dump EVERYTHING.
 And it does. The admins table is dumped, followed by the pages table. Which includes the content for the forbidden page three. The flag is found:
-<details><summary>Flag 3/summary>
+<details><summary>Flag 3</summary>
 	<p>	
 ^FLAG^3a4381fac9b9ea1150d772204981463d1724c56b9ab3fc0dd6ce4adcb94d15c3$FLAG$
 </p>
